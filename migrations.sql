@@ -125,3 +125,23 @@ CREATE TABLE kpi_definicion (
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tabla de relación entre tipos de proceso y KPIs definidos
+-- Permite asociar qué KPIs aplican a cada tipo_de_proceso para el dashboard
+CREATE TABLE IF NOT EXISTS tipo_proceso_kpi (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_tipo_proceso  INT UNSIGNED NOT NULL,
+  id_kpi           INT UNSIGNED NOT NULL,
+  activo           TINYINT(1)   NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  KEY idx_tpk_tipo_proceso (id_tipo_proceso),
+  KEY idx_tpk_kpi (id_kpi),
+  CONSTRAINT fk_tpk_tipo_proceso
+    FOREIGN KEY (id_tipo_proceso) REFERENCES tipo_de_proceso (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_tpk_kpi
+    FOREIGN KEY (id_kpi) REFERENCES kpi_definicion (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
