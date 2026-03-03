@@ -142,7 +142,7 @@ VALUES
   (11, 'Horas No Operativas',   'hrs_no_op',                'SUM',    'hs',  'alert-circle',   'Horas no operativas acumuladas',                               1),
   (12, 'Horas Trabajadas',      'CUSTOM:horas_trabajadas',  'CUSTOM', 'hs',  'timer',          'Horas trabajadas calculadas: SUM(hr_fin - hr_inicio)',         1),
   (13, 'Eficiencia Operativa',  'CUSTOM:eficiencia',        'CUSTOM', '%',   'percent',        'Eficiencia: (hrs_trabajadas - hrs_no_op) / hrs_trabajadas',    1),
-  (14, 'Registros del Período', 'CUSTOM:registros',         'COUNT',  'reg', 'clipboard-list', 'Cantidad de registros en el período',    
+  (14, 'Registros del Período', 'CUSTOM:registros',         'COUNT',  'reg', 'clipboard-list', 'Cantidad de registros en el período',                          1);
 
 CREATE TABLE `tipo_proceso_kpi` (
   `tipo_proceso_id` int(10) UNSIGNED NOT NULL,
