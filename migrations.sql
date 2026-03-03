@@ -148,8 +148,13 @@ CREATE TABLE `tipo_proceso_kpi` (
   `tipo_proceso_id` int(10) UNSIGNED NOT NULL,
   `kpi_id` int(10) UNSIGNED NOT NULL,
   `orden` tinyint(3) UNSIGNED NOT NULL DEFAULT 0,
-  `es_principal` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = KPI destacado/hero card'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `es_principal` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = KPI destacado/hero card',
+  PRIMARY KEY (`tipo_proceso_id`, `kpi_id`),
+  CONSTRAINT `fk_tipo_proceso_kpi_tipo_proceso`
+    FOREIGN KEY (`tipo_proceso_id`) REFERENCES `tipo_de_proceso` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_tipo_proceso_kpi_kpi`
+    FOREIGN KEY (`kpi_id`) REFERENCES `kpi_definicion` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- CARGA (1) → tn_despachadas(P), combustible, horas_trabajadas, eficiencia, registros
 INSERT INTO tipo_proceso_kpi (tipo_proceso_id, kpi_id, orden, es_principal) VALUES
