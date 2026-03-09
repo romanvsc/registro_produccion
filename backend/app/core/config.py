@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         "http://localhost:5174",
         "http://127.0.0.1:5174",
         "http://localhost:3000",
+        "http://localhost:8005",
     ]
     SECRET_KEY: str = "change-me-in-production-with-a-real-secret-key"
     ACCESS_TOKEN_EXPIRE_HOURS: int = 8

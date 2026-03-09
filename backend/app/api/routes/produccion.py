@@ -23,6 +23,7 @@ from app.schemas.produccion import (
     ActaResponse,
     PredioResponse,
     RodalResponse,
+    UltimaHoraFinResponse,
     TableroProduccionCreate,
     TableroProduccionResponse,
 )
@@ -254,6 +255,42 @@ async def list_rodales(predio_id: int | None = None, db: Session = Depends(get_d
         RodalResponse(idRodal=r.idRodal, rodal=r.Rodal, idPredio=r.idPredio)
         for r in rows
     ]
+
+
+@router.get("/ultima-hora-fin", response_model=UltimaHoraFinResponse)
+async def get_ultima_hora_fin(
+    cod_operador: int,
+    cod_un: int | None = None,
+    codigo_tabla: int | None = None,
+    cod_equipo: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(TableroProduccion).filter(
+        TableroProduccion.cod_operador == cod_operador,
+        TableroProduccion.hr_fin.isnot(None),
+    )
+
+    if cod_un:
+        query = query.filter(TableroProduccion.cod_un == cod_un)
+    if codigo_tabla:
+        query = query.filter(TableroProduccion.codigo_tabla == codigo_tabla)
+    if cod_equipo:
+        query = query.filter(TableroProduccion.cod_equipo == cod_equipo)
+
+    row = (
+        query
+        .order_by(
+            TableroProduccion.fecha.desc(),
+            TableroProduccion.fecha_hora.desc(),
+            TableroProduccion.id.desc(),
+        )
+        .first()
+    )
+
+    if not row or row.hr_fin is None:
+        return UltimaHoraFinResponse(hr_fin=None)
+
+    return UltimaHoraFinResponse(hr_fin=float(row.hr_fin))
 
 
 # ─── Crear registro en tablero_produccion ───

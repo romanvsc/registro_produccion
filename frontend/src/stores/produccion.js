@@ -131,6 +131,16 @@ export const useProduccionStore = defineStore('produccion', {
       }
     },
 
+    async fetchUltimaHoraFin(params) {
+      try {
+        const { data } = await api.get('/api/produccion/ultima-hora-fin', { params })
+        return data
+      } catch (err) {
+        console.error('Error loading ultima hora fin:', err)
+        return null
+      }
+    },
+
     async submitProduccion(formData) {
       this.submitting = true
       this.error = null
