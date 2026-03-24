@@ -12,6 +12,7 @@ from app.models.movil import Movil
 from app.models.movil_operador import MovilOperador
 from app.models.ubicacion import Acta, Predio, Rodal
 from app.models.produccion import TableroProduccion
+from app.models.carga_comb import CargaComb
 from app.models.asignacion_operativa import AsignacionOperativa
 from app.schemas.produccion import (
     OperadorResponse,
@@ -253,6 +254,10 @@ async def create_produccion(data: TableroProduccionCreate, db: Session = Depends
         hr_fin=data.hr_fin,
         combustible=data.combustible,
         aceite_cadena=data.aceite_cadena,
+        aceite_hidraulico=data.aceite_hidraulico,
+        aceite_motor=data.aceite_motor,
+        aceite_transmision=data.aceite_transmision,
+        aceite_embrague=data.aceite_embrague,
         acta=data.acta,
         rodal=data.rodal,
         predio=data.predio,
@@ -270,12 +275,38 @@ async def create_produccion(data: TableroProduccionCreate, db: Session = Depends
         motivo_no_op=data.motivo_no_op,
         observaciones=data.observaciones,
         unidad_produccion=data.unidad_produccion,
+        espada=data.espada,
+        puntera=data.puntera,
+        cadena=data.cadena,
+        pinon=data.pinon,
+        cantidad_cadenas=data.cantidad_cadenas,
         tabla=data.tabla,
         codigo_tabla=data.codigo_tabla,
         fecha_hora=datetime.now(),
         origen="web",
     )
     db.add(registro)
+    db.flush()
+
+    # Si se cargó combustible, crear registro en cargacomb
+    if data.combustible and data.combustible > 0:
+        now = datetime.now()
+        carga = CargaComb(
+            idMovil=data.cod_equipo or 0,
+            idTipoComb=1,  # Gasoil por defecto
+            Fecha=data.fecha,
+            KM=0,
+            Litros=data.combustible,
+            UnidadNegocio=data.cod_un or 1,
+            personal=data.cod_operador or 1,
+            idtabla=str(new_id),
+            tabla="tablero_produccion",
+            _usuario="web",
+            _fecha=now.date(),
+            _hora=now.strftime("%H:%M:%S"),
+        )
+        db.add(carga)
+
     db.commit()
     db.refresh(registro)
     return registro

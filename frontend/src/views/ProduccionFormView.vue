@@ -452,8 +452,90 @@
         </div>
       </SectionCard>
 
-      <!-- ═══ 8. UBICACIÓN Y REFERENCIA ═══ -->
-      <SectionCard v-show="pasoActual === 6" title="Ubicación y Referencia">
+      <!-- ═══ 8. ACEITES ═══ -->
+      <SectionCard v-show="pasoActual === 6" title="Aceites">
+        <div class="space-y-3">
+          <InputField
+            label="Hidráulico (litros)"
+            type="number"
+            v-model.number="form.aceite_hidraulico"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Motor (litros)"
+            type="number"
+            v-model.number="form.aceite_motor"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Transmisión (litros)"
+            type="number"
+            v-model.number="form.aceite_transmision"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Embrague (litros)"
+            type="number"
+            v-model.number="form.aceite_embrague"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Cadena (litros)"
+            type="number"
+            v-model.number="form.aceite_cadena"
+            placeholder="0"
+            min="0"
+          />
+        </div>
+      </SectionCard>
+
+      <!-- ═══ 9. MECÁNICA ═══ -->
+      <SectionCard v-show="pasoActual === 7" title="Mecánica">
+        <div class="space-y-3">
+          <InputField
+            label="Espada"
+            type="number"
+            v-model.number="form.espada"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Puntera"
+            type="number"
+            v-model.number="form.puntera"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Cadena"
+            type="number"
+            v-model.number="form.cadena"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Piñón"
+            type="number"
+            v-model.number="form.pinon"
+            placeholder="0"
+            min="0"
+          />
+          <InputField
+            label="Cantidad de Cadenas"
+            type="number"
+            v-model.number="form.cantidad_cadenas"
+            placeholder="0"
+            min="0"
+          />
+        </div>
+      </SectionCard>
+
+      <!-- ═══ 10. UBICACIÓN Y REFERENCIA ═══ -->
+      <SectionCard v-show="pasoActual === 8" title="Ubicación y Referencia">
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-1">Acta</label>
           <select
@@ -509,7 +591,7 @@
       </SectionCard>
 
       <!-- ═══ OBSERVACIONES ═══ -->
-      <SectionCard v-show="pasoActual === 6" title="Observaciones">
+      <SectionCard v-show="pasoActual === 8" title="Observaciones">
         <textarea
           v-model="form.observaciones"
           rows="3"
@@ -604,7 +686,7 @@ const fieldClass = 'w-full px-4 py-3 bg-neutral-100 border border-neutral-300 ro
 
 // ─── Wizard steps ───
 const pasoActual = ref(0)
-const pasos = ['Fecha', 'Unidad de Negocio', 'Operador', 'Maquinaria', 'Tiempo', 'Producción', 'Ubicación']
+const pasos = ['Fecha', 'Unidad de Negocio', 'Operador', 'Maquinaria', 'Tiempo', 'Producción', 'Aceites', 'Mecánica', 'Ubicación']
 const totalPasos = pasos.length
 
 function hasPositiveValue(value) {
@@ -660,7 +742,9 @@ const puedeAvanzar = computed(() => {
     case 3: return form.cod_equipo > 0
     case 4: return validateTiempoStep()
     case 5: return validateProduccionStep()
-    case 6: return validateUbicacionStep()
+    case 6: return true  // Aceites — optional fields
+    case 7: return true  // Mecánica — optional fields
+    case 8: return validateUbicacionStep()
     default: return true
   }
 })
@@ -765,6 +849,10 @@ const form = reactive({
   motivo_no_op: '',
   combustible: 0,
   aceite_cadena: 0,
+  aceite_hidraulico: 0,
+  aceite_motor: 0,
+  aceite_transmision: 0,
+  aceite_embrague: 0,
   // Campos de producción específicos
   m3: 0,
   carros: 0,
@@ -782,6 +870,12 @@ const form = reactive({
   rodal_id: '',
   rodal_manual: '',
   observaciones: '',
+  // Mecánica
+  espada: 0,
+  puntera: 0,
+  cadena: 0,
+  pinon: 0,
+  cantidad_cadenas: 0,
 })
 
 // ─── Load initial data ───
@@ -1025,6 +1119,10 @@ async function handleSubmit() {
       hr_fin: form.hr_fin,
       combustible: form.combustible,
       aceite_cadena: form.aceite_cadena,
+      aceite_hidraulico: form.aceite_hidraulico,
+      aceite_motor: form.aceite_motor,
+      aceite_transmision: form.aceite_transmision,
+      aceite_embrague: form.aceite_embrague,
       acta: form.acta,
       rodal: getRodalNombre(),
       predio: getPredioNombre(form.predio_id),
@@ -1041,6 +1139,11 @@ async function handleSubmit() {
       hrs_no_op: form.hrs_no_op,
       motivo_no_op: form.motivo_no_op,
       observaciones: form.observaciones,
+      espada: form.espada,
+      puntera: form.puntera,
+      cadena: form.cadena,
+      pinon: form.pinon,
+      cantidad_cadenas: form.cantidad_cadenas,
       unidad_produccion: resolveUnidadProduccion(),
       tabla: 'tipo_de_proceso',
       codigo_tabla: form.tipo_de_proceso_id || 0,
