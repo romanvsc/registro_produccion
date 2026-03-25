@@ -104,6 +104,10 @@ class TableroProduccionCreate(BaseModel):
     hr_fin: float = 0
     combustible: int = 0
     aceite_cadena: int = 0
+    aceite_hidraulico: int = 0
+    aceite_motor: int = 0
+    aceite_transmision: int = 0
+    aceite_embrague: int = 0
     acta: str = "0"
     rodal: str = "0"
     predio: str = "0"
@@ -121,6 +125,11 @@ class TableroProduccionCreate(BaseModel):
     motivo_no_op: str = "0"
     observaciones: str = "0"
     unidad_produccion: str = "0"
+    espada: int = 0
+    puntera: int = 0
+    cadena: int = 0
+    pinon: int = 0
+    cantidad_cadenas: int = 0
     tabla: str = "tipo_de_proceso"
     codigo_tabla: int = 0
 
@@ -137,6 +146,11 @@ class TableroProduccionResponse(BaseModel):
     hr_inicio: float
     hr_fin: float
     combustible: int
+    aceite_cadena: int
+    aceite_hidraulico: int
+    aceite_motor: int
+    aceite_transmision: int
+    aceite_embrague: int
     m3: int
     carros: int
     tn_despachadas: float
@@ -152,6 +166,11 @@ class TableroProduccionResponse(BaseModel):
     acta: str
     rodal: str
     predio: str
+    espada: int = 0
+    puntera: int = 0
+    cadena: int = 0
+    pinon: int = 0
+    cantidad_cadenas: int = 0
 
     class Config:
         from_attributes = True
