@@ -152,7 +152,9 @@ let syncIntervalId = null
 
 async function handleOnline() {
   isOnline.value = true
-  await produccionStore.syncPending()
+  if (navigator.onLine && authStore.isAuthenticated) {
+    await produccionStore.syncPending()
+  }
 }
 
 function handleOffline() {
