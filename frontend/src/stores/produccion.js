@@ -200,18 +200,38 @@ export const useProduccionStore = defineStore('produccion', {
       const pending = await db.pendingRecords.where('synced').equals(0).toArray()
       if (!pending.length) return
 
+      this.error = null
       let successCount = 0
+      let permanentFailureCount = 0
+
       for (const record of pending) {
         try {
           await api.post('/api/produccion', record.payload)
           await db.pendingRecords.delete(record.id)
           successCount++
-        } catch {
-          // Leave in queue; will retry next cycle
+        } catch (err) {
+          const status = err?.response?.status
+
+          if (status >= 400 && status < 500) {
+            const detail = err.response?.data?.detail || 'Error permanente al sincronizar el registro'
+            await db.pendingRecords.update(record.id, {
+              synced: 1,
+              syncStatus: 'failed',
+              syncError: detail,
+              failedAt: Date.now(),
+            })
+            permanentFailureCount++
+            continue
+          }
+
+          // Network error or server-side transient error; leave in queue for retry
         }
       }
 
       await this.refreshPendingCount()
+      if (permanentFailureCount > 0) {
+        this.error = `No se pudieron sincronizar ${permanentFailureCount} registro(s) por un error permanente.`
+      }
       return successCount
     },
 
