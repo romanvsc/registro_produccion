@@ -15,6 +15,7 @@ from app.models.ubicacion import Acta, Predio, Rodal
 from app.models.produccion import TableroProduccion
 from app.models.carga_comb import CargaComb
 from app.models.asignacion_operativa import AsignacionOperativa
+from app.models.lugar_carga import LugarCarga
 from app.schemas.produccion import (
     OperadorResponse,
     UnidadNegocioResponse,
@@ -25,6 +26,7 @@ from app.schemas.produccion import (
     PredioResponse,
     RodalResponse,
     UltimaHoraFinResponse,
+    LugarCargaResponse,
     TableroProduccionCreate,
     TableroProduccionResponse,
 )
@@ -258,25 +260,43 @@ async def list_rodales(predio_id: int | None = None, db: Session = Depends(get_d
     ]
 
 
+# ─── Lugares de Carga ───
+@router.get("/lugares-carga", response_model=List[LugarCargaResponse])
+async def list_lugares_carga(un_id: int | None = None, db: Session = Depends(get_db)):
+    if not _table_exists(db, "lugarcarga"):
+        return []
+    query = db.query(LugarCarga).filter(LugarCarga.activo == 1)
+    if un_id:
+        query = query.filter(LugarCarga.unidad_negocio == un_id)
+    rows = query.order_by(LugarCarga.Detalle).all()
+    return [LugarCargaResponse(idLugarCarga=r.idLugarCarga, detalle=r.Detalle) for r in rows]
+
+
 @router.get("/ultima-hora-fin", response_model=UltimaHoraFinResponse)
 async def get_ultima_hora_fin(
-    cod_operador: int,
+    cod_operador: int | None = None,
     cod_un: int | None = None,
     codigo_tabla: int | None = None,
     cod_equipo: int | None = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(TableroProduccion).filter(
-        TableroProduccion.cod_operador == cod_operador,
         TableroProduccion.hr_fin.isnot(None),
     )
+
+    # When a machine is specified, use it as the primary filter (across all operators)
+    # so the new hr_inicio is never below the last hr_fin of that machine.
+    if cod_equipo:
+        query = query.filter(TableroProduccion.cod_equipo == cod_equipo)
+    elif cod_operador:
+        query = query.filter(TableroProduccion.cod_operador == cod_operador)
+    else:
+        return UltimaHoraFinResponse(hr_fin=None)
 
     if cod_un:
         query = query.filter(TableroProduccion.cod_un == cod_un)
     if codigo_tabla:
         query = query.filter(TableroProduccion.codigo_tabla == codigo_tabla)
-    if cod_equipo:
-        query = query.filter(TableroProduccion.cod_equipo == cod_equipo)
 
     row = (
         query
@@ -341,6 +361,12 @@ async def create_produccion(data: TableroProduccionCreate, db: Session = Depends
         cadena=data.cadena,
         pinon=data.pinon,
         cantidad_cadenas=data.cantidad_cadenas,
+        pies_16=data.pies_16,
+        pies_14=data.pies_14,
+        pies_12=data.pies_12,
+        pies_10=data.pies_10,
+        pulpable=data.pulpable,
+        lugar_carga=data.lugar_carga,
         tabla=data.tabla,
         codigo_tabla=data.codigo_tabla,
         fecha_hora=datetime.now(),

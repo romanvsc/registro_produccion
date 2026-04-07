@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import db from '@/services/db'
 
 const ensureArray = (value) => (Array.isArray(value) ? value : [])
 
@@ -15,6 +16,8 @@ export const useProduccionStore = defineStore('produccion', {
     actas: [],
     predios: [],
     rodales: [],
+    lugaresCarga: [],
+    pendingCount: 0,
     loading: false,
     submitting: false,
     error: null,
@@ -131,6 +134,19 @@ export const useProduccionStore = defineStore('produccion', {
       }
     },
 
+    async fetchLugaresCarga(unId) {
+      this.lugaresCarga = []
+      if (!unId) return
+      try {
+        const { data } = await api.get('/api/produccion/lugares-carga', {
+          params: { un_id: unId },
+        })
+        this.lugaresCarga = ensureArray(data)
+      } catch (err) {
+        console.error('Error loading lugares de carga:', err)
+      }
+    },
+
     async fetchUltimaHoraFin(params) {
       try {
         const { data } = await api.get('/api/produccion/ultima-hora-fin', { params })
@@ -145,14 +161,78 @@ export const useProduccionStore = defineStore('produccion', {
       this.submitting = true
       this.error = null
       try {
+        // If offline, queue locally instead of posting
+        if (!navigator.onLine) {
+          await db.pendingRecords.add({
+            payload: formData,
+            timestamp: Date.now(),
+            synced: 0,
+          })
+          await this.refreshPendingCount()
+          return { offline: true }
+        }
+
         const { data } = await api.post('/api/produccion', formData)
         return data
       } catch (err) {
+        // Network error → queue for later
+        if (!err.response) {
+          await db.pendingRecords.add({
+            payload: formData,
+            timestamp: Date.now(),
+            synced: 0,
+          })
+          await this.refreshPendingCount()
+          return { offline: true }
+        }
         this.error = err.response?.data?.detail || 'Error al guardar el registro'
         throw err
       } finally {
         this.submitting = false
       }
+    },
+
+    async refreshPendingCount() {
+      this.pendingCount = await db.pendingRecords.where('synced').equals(0).count()
+    },
+
+    async syncPending() {
+      const pending = await db.pendingRecords.where('synced').equals(0).toArray()
+      if (!pending.length) return
+
+      this.error = null
+      let successCount = 0
+      let permanentFailureCount = 0
+
+      for (const record of pending) {
+        try {
+          await api.post('/api/produccion', record.payload)
+          await db.pendingRecords.delete(record.id)
+          successCount++
+        } catch (err) {
+          const status = err?.response?.status
+
+          if (status >= 400 && status < 500) {
+            const detail = err.response?.data?.detail || 'Error permanente al sincronizar el registro'
+            await db.pendingRecords.update(record.id, {
+              synced: 1,
+              syncStatus: 'failed',
+              syncError: detail,
+              failedAt: Date.now(),
+            })
+            permanentFailureCount++
+            continue
+          }
+
+          // Network error or server-side transient error; leave in queue for retry
+        }
+      }
+
+      await this.refreshPendingCount()
+      if (permanentFailureCount > 0) {
+        this.error = `No se pudieron sincronizar ${permanentFailureCount} registro(s) por un error permanente.`
+      }
+      return successCount
     },
 
     // Carga inicial de catálogos
@@ -165,6 +245,7 @@ export const useProduccionStore = defineStore('produccion', {
           this.fetchPredios(),
           this.fetchAllTiposProceso(),
         ])
+        await this.refreshPendingCount()
       } finally {
         this.loading = false
       }

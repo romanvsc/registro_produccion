@@ -48,6 +48,7 @@
             type="button"
             @click="irAPaso(i)"
             :class="['w-2.5 h-2.5 rounded-full transition-all duration-300 focus:outline-none',
+              (i === 7 && !esProceso) ? 'bg-neutral-200 cursor-default opacity-40' :
               i === pasoActual ? 'bg-primary scale-125' : i < pasoActual ? 'bg-primary/60 hover:bg-primary/80 cursor-pointer' : 'bg-neutral-300 cursor-default']"
           />
         </div>
@@ -65,37 +66,27 @@
 
       <!-- ═══ 2. UNIDAD DE NEGOCIO ═══ -->
       <SectionCard v-show="pasoActual === 1" title="Unidad de Negocio">
-        <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Unidad de Negocio</label>
-          <select
-            v-model="form.un_id"
-            @change="onUnidadChange"
-            required
-            :class="fieldClass"
-          >
-            <option value="" disabled>— Seleccionar —</option>
-            <option v-for="un in store.unidadesNegocio" :key="un.idUnidadNegocio" :value="un.idUnidadNegocio">
-              {{ un.nombre }}
-            </option>
-          </select>
-        </div>
+        <AutocompleteField
+          label="Unidad de Negocio"
+          v-model="form.un_id"
+          :items="store.unidadesNegocio"
+          labelKey="nombre"
+          valueKey="idUnidadNegocio"
+          placeholder="— Escribí para buscar —"
+          @select="onUnidadChange"
+        />
 
         <div class="mt-3">
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Tipo de Proceso</label>
-          <select
+          <AutocompleteField
+            label="Tipo de Proceso"
             v-model="form.tipo_de_proceso_id"
-            @change="onTipoProcesoChange"
-            required
+            :items="store.tiposProceso"
+            labelKey="nombre"
+            valueKey="id"
             :disabled="!form.un_id || store.tiposProceso.length === 0"
-            :class="fieldClass"
-          >
-            <option value="" disabled>
-              {{ !form.un_id ? '— Primero seleccioná UN —' : store.tiposProceso.length === 0 ? '— Sin procesos disponibles —' : '— Seleccionar —' }}
-            </option>
-            <option v-for="tp in store.tiposProceso" :key="tp.id" :value="tp.id">
-              {{ tp.nombre }}
-            </option>
-          </select>
+            :placeholder="!form.un_id ? '— Primero seleccioná UN —' : store.tiposProceso.length === 0 ? '— Sin procesos disponibles —' : '— Escribí para buscar —'"
+            @select="onTipoProcesoChange"
+          />
         </div>
       </SectionCard>
 
@@ -110,21 +101,16 @@
         </div>
         <!-- Si es encargado: seleccionar (requiere UN primero) -->
         <div v-else>
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Seleccionar Operador</label>
-          <select
+          <AutocompleteField
+            label="Seleccionar Operador"
             v-model="form.operador_id"
-            @change="onOperadorChange"
-            required
+            :items="store.operadores"
+            labelKey="nombre"
+            valueKey="idPersonal"
             :disabled="!form.un_id || store.operadores.length === 0"
-            :class="fieldClass"
-          >
-            <option value="" disabled>
-              {{ !form.un_id ? '— Primero seleccioná UN —' : store.operadores.length === 0 ? '— Sin operadores —' : '— Seleccionar operador —' }}
-            </option>
-            <option v-for="op in store.operadores" :key="op.idPersonal" :value="op.idPersonal">
-              {{ op.nombre }}
-            </option>
-          </select>
+            :placeholder="!form.un_id ? '— Primero seleccioná UN —' : store.operadores.length === 0 ? '— Sin operadores —' : '— Escribí para buscar —'"
+            @select="onOperadorChange"
+          />
         </div>
       </SectionCard>
 
@@ -274,7 +260,12 @@
           v-if="mostrarErrorHoras"
           class="mt-3 px-3 py-2 bg-error-light/40 border border-error/30 rounded-lg text-sm text-error-dark"
         >
-          La hora de inicio y fin deben ser mayores a 0, y la hora final debe ser mayor a la inicial.
+          <span v-if="Number(form.hr_inicio) > 0 && ultimaHoraFinRef > 0 && Number(form.hr_inicio) < ultimaHoraFinRef">
+            La hora de inicio ({{ form.hr_inicio }}) no puede ser menor al fin del registro anterior ({{ ultimaHoraFinRef }}).
+          </span>
+          <span v-else>
+            La hora de inicio y fin deben ser mayores a 0, y la hora final no puede ser menor a la inicial.
+          </span>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-3">
           <InputField
@@ -359,6 +350,50 @@
             placeholder="Cantidad de plantas"
             min="0"
           />
+
+          <!-- Pies y Pulpable (exclusivo cuando esProceso) -->
+          <template v-if="esProceso">
+            <InputField
+              label="16 Pies"
+              type="number"
+              v-model.number="form.pies_16"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+            <InputField
+              label="14 Pies"
+              type="number"
+              v-model.number="form.pies_14"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+            <InputField
+              label="12 Pies"
+              type="number"
+              v-model.number="form.pies_12"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+            <InputField
+              label="10 Pies"
+              type="number"
+              v-model.number="form.pies_10"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+            <InputField
+              label="Pulpable"
+              type="number"
+              v-model.number="form.pulpable"
+              placeholder="0"
+              min="0"
+              step="0.01"
+            />
+          </template>
 
           <!-- Hora inicio / fin (para HORAS MAQUINAS) -->
           <div v-if="camposActivos.includes('hora_inicio')" class="grid grid-cols-2 gap-4">
@@ -505,8 +540,8 @@
         </div>
       </SectionCard>
 
-      <!-- ═══ 9. MECÁNICA ═══ -->
-      <SectionCard v-show="pasoActual === 7" title="Mecánica">
+      <!-- ═══ 9. SISTEMA DE CORTE (solo para PROCESO) ═══ -->
+      <SectionCard v-show="pasoActual === 7" v-if="esProceso" title="Sistema de Corte">
         <div class="space-y-3">
           <InputField
             label="Espada"
@@ -549,51 +584,59 @@
       <!-- ═══ 10. UBICACIÓN Y REFERENCIA ═══ -->
       <SectionCard v-show="pasoActual === 8" title="Ubicación y Referencia">
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Acta</label>
-          <select
-            v-model="form.acta"
-            :class="fieldClass"
-          >
-            <option value="">— Sin acta —</option>
-            <option v-for="a in store.actas" :key="a.id" :value="a.numero">
-              {{ a.numero }}
-            </option>
-          </select>
-        </div>
-
-        <div class="mt-3">
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Predio</label>
-          <select
-            v-model="form.predio_id"
-            @change="onPredioChange"
-            :class="fieldClass"
-          >
-            <option value="" disabled>— Seleccionar predio —</option>
-            <option v-for="p in store.predios" :key="p.idPredio" :value="p.idPredio">
-              {{ p.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <div class="mt-3">
-          <label class="block text-sm font-medium text-neutral-700 mb-1">Rodal</label>
-          <select
-            v-if="store.rodales.length > 0"
-            v-model="form.rodal_id"
-            :class="fieldClass"
-          >
-            <option value="">— Seleccionar rodal —</option>
-            <option v-for="r in store.rodales" :key="r.idRodal" :value="r.idRodal">
-              {{ r.rodal }}
-            </option>
-          </select>
-          <input
-            v-else
-            type="text"
-            v-model="form.rodal_manual"
-            placeholder="Ingresá el rodal manualmente"
-            :class="fieldClass"
+          <AutocompleteField
+            label="Lugar de Carga"
+            v-model="form.lugar_carga_id"
+            :items="store.lugaresCarga"
+            labelKey="detalle"
+            valueKey="idLugarCarga"
+            placeholder="— Buscar lugar de carga —"
           />
+        </div>
+
+        <div class="mt-3">
+          <AutocompleteField
+            label="Acta"
+            :modelValue="form.acta"
+            :items="store.actas"
+            labelKey="numero"
+            valueKey="numero"
+            placeholder="— Buscar acta —"
+            @select="item => { form.acta = item ? item.numero : '' }"
+          />
+        </div>
+
+        <div class="mt-3">
+          <AutocompleteField
+            label="Predio"
+            v-model="form.predio_id"
+            :items="store.predios"
+            labelKey="nombre"
+            valueKey="idPredio"
+            placeholder="— Buscar predio —"
+            @select="onPredioChange"
+          />
+        </div>
+
+        <div class="mt-3">
+          <AutocompleteField
+            v-if="store.rodales.length > 0"
+            label="Rodal"
+            v-model="form.rodal_id"
+            :items="store.rodales"
+            labelKey="rodal"
+            valueKey="idRodal"
+            placeholder="— Buscar rodal —"
+          />
+          <div v-else>
+            <label class="block text-sm font-medium text-neutral-700 mb-1">Rodal</label>
+            <input
+              type="text"
+              v-model="form.rodal_manual"
+              placeholder="Ingresá el rodal manualmente"
+              :class="fieldClass"
+            />
+          </div>
         </div>
         <div
           v-if="mostrarErrorUbicacion"
@@ -686,6 +729,7 @@ import { useProduccionStore } from '@/stores/produccion'
 import Swal from 'sweetalert2'
 import SectionCard from '@/components/SectionCard.vue'
 import InputField from '@/components/InputField.vue'
+import AutocompleteField from '@/components/AutocompleteField.vue'
 import motivosNoOperativos from '@/data/motivosNoOperativos.json'
 
 const router = useRouter()
@@ -698,12 +742,16 @@ const motivoSeleccionado = ref('')
 const busquedaMovil = ref('')
 const mostrandoBuscador = ref(false)
 const inputBuscadorMovil = ref(null)
+const ultimaHoraFinRef = ref(0)
 const fieldClass = 'w-full px-4 py-3 bg-neutral-100 border border-neutral-300 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 disabled:bg-neutral-200 disabled:cursor-not-allowed transition-colors'
 
 // ─── Wizard steps ───
 const pasoActual = ref(0)
-const pasos = ['Fecha', 'Unidad de Negocio', 'Operador', 'Maquinaria', 'Tiempo', 'Producción', 'Aceites', 'Mecánica', 'Ubicación']
+const pasos = ['Fecha', 'Unidad de Negocio', 'Operador', 'Maquinaria', 'Tiempo', 'Producción', 'Aceites', 'Sistema de Corte', 'Ubicación']
 const totalPasos = pasos.length
+
+// Determina si el tipo de proceso elegido es "PROCESO"
+const esProceso = computed(() => tipoProcesoNombre.value.trim().toUpperCase() === 'PROCESO')
 
 const puedeAvanzar = computed(() => {
   switch (pasoActual.value) {
@@ -711,31 +759,39 @@ const puedeAvanzar = computed(() => {
     case 1: return !!form.un_id && !!form.tipo_de_proceso_id
     case 2: return !!form.operador_id
     case 3: return form.cod_equipo > 0
-    case 4: return validateTiempoStep()
-    case 5: return validateProduccionStep()
+    case 4: return horasValidas.value
+    case 5: return produccionValida.value
     case 6: return true  // Aceites — optional fields
-    case 7: return true  // Mecánica — optional fields
-    case 8: return validateUbicacionStep()
+    case 7: return true  // Sistema de Corte — optional fields
+    case 8: return ubicacionValida.value
     default: return true
   }
 })
 
 function avanzar() {
   if (puedeAvanzar.value && pasoActual.value < totalPasos - 1) {
-    pasoActual.value++
+    let next = pasoActual.value + 1
+    // Saltar paso 7 (Sistema de Corte) si no es tipo PROCESO
+    if (next === 7 && !esProceso.value) next++
+    pasoActual.value = next
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 function retroceder() {
   if (pasoActual.value > 0) {
-    pasoActual.value--
+    let prev = pasoActual.value - 1
+    // Saltar paso 7 hacia atrás si no es tipo PROCESO
+    if (prev === 7 && !esProceso.value) prev--
+    pasoActual.value = prev
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 function irAPaso(i) {
   if (i < pasoActual.value) {
+    // No permitir ir directamente al paso 7 si no es PROCESO
+    if (i === 7 && !esProceso.value) return
     pasoActual.value = i
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -841,12 +897,20 @@ const form = reactive({
   rodal_id: '',
   rodal_manual: '',
   observaciones: '',
-  // Mecánica
+  // Mecánica / Sistema de Corte
   espada: 0,
   puntera: 0,
   cadena: 0,
   pinon: 0,
   cantidad_cadenas: 0,
+  // Pies y pulpable (PROCESO)
+  pies_16: 0,
+  pies_14: 0,
+  pies_12: 0,
+  pies_10: 0,
+  pulpable: 0,
+  // Lugar de carga
+  lugar_carga_id: 0,
 })
 
 const actaNormalizada = computed(() => String(form.acta ?? '').trim())
@@ -854,7 +918,11 @@ const actaNormalizada = computed(() => String(form.acta ?? '').trim())
 const horasValidas = computed(() => {
   const inicio = Number(form.hr_inicio)
   const fin = Number(form.hr_fin)
-  return inicio > 0 && fin > 0 && fin > inicio
+  if (inicio <= 0 || fin <= 0) return false
+  if (fin < inicio) return false
+  // hr_inicio no puede ser menor al hr_fin del registro anterior
+  if (ultimaHoraFinRef.value > 0 && inicio < ultimaHoraFinRef.value) return false
+  return true
 })
 
 const produccionValida = computed(() => {
@@ -901,7 +969,11 @@ const mostrarErrorUbicacion = computed(() => {
 
 const mensajePasoIncompleto = computed(() => {
   if (pasoActual.value === 4 && !horasValidas.value) {
-    return 'Revisá las horas: inicio y fin deben ser mayores a 0, y fin mayor que inicio.'
+    const inicio = Number(form.hr_inicio)
+    if (ultimaHoraFinRef.value > 0 && inicio > 0 && inicio < ultimaHoraFinRef.value) {
+      return `La hora de inicio (${form.hr_inicio}) no puede ser menor al fin del registro anterior (${ultimaHoraFinRef.value}).`
+    }
+    return 'Revisá las horas: inicio y fin deben ser mayores a 0, y fin no puede ser menor al inicio.'
   }
   if (pasoActual.value === 5 && !produccionValida.value) {
     return 'Completá los campos de producción con valores mayores a 0 para continuar.'
@@ -980,37 +1052,36 @@ function getProcesoTexto(idProceso) {
 
 // ─── Watchers ───
 async function onOperadorChange() {
-  if (form.operador_id) {
-    // Fetch asignaciones operativas + fallback legacy
-    await Promise.all([
-      store.fetchAsignaciones(form.operador_id),
-      store.fetchMovilByOperador(form.operador_id),
-    ])
+  if (!form.operador_id) return
+  // Fetch asignaciones operativas + fallback legacy
+  await Promise.all([
+    store.fetchAsignaciones(form.operador_id),
+    store.fetchMovilByOperador(form.operador_id),
+  ])
 
-    if (store.asignaciones.length > 0) {
-      // Si hay asignaciones, usar la primera como default
-      const asig = store.asignaciones[0]
-      seleccionarMovil({ idMovil: asig.idMovil, patente: asig.patente, detalle: asig.detalle })
-      // Auto-set tipo de proceso si hay uno solo o coincide con el actual
-      if (asig.idProceso && (!form.tipo_de_proceso_id || store.asignaciones.length === 1)) {
-        form.tipo_de_proceso_id = asig.idProceso
-      }
-    } else if (store.movilAsignado) {
-      seleccionarMovil(store.movilAsignado)
-    } else {
-      limpiarMovilSeleccionado()
+  if (store.asignaciones.length > 0) {
+    // Si hay asignaciones, usar la primera como default
+    const asig = store.asignaciones[0]
+    seleccionarMovil({ idMovil: asig.idMovil, patente: asig.patente, detalle: asig.detalle })
+    // Auto-set tipo de proceso si hay uno solo o coincide con el actual
+    if (asig.idProceso && (!form.tipo_de_proceso_id || store.asignaciones.length === 1)) {
+      form.tipo_de_proceso_id = asig.idProceso
     }
-
-    // Auto-set tipo de proceso del operador si no se seteó por asignación
-    if (!form.tipo_de_proceso_id) {
-      const operador = store.operadores.find(o => o.idPersonal === form.operador_id)
-      if (operador?.tipo_de_proceso_id) {
-        form.tipo_de_proceso_id = operador.tipo_de_proceso_id
-      }
-    }
-
-    await autocompletarHoraInicio({ force: true })
+  } else if (store.movilAsignado) {
+    seleccionarMovil(store.movilAsignado)
+  } else {
+    limpiarMovilSeleccionado()
   }
+
+  // Auto-set tipo de proceso del operador si no se seteó por asignación
+  if (!form.tipo_de_proceso_id) {
+    const operador = store.operadores.find(o => o.idPersonal === form.operador_id)
+    if (operador?.tipo_de_proceso_id) {
+      form.tipo_de_proceso_id = operador.tipo_de_proceso_id
+    }
+  }
+
+  await autocompletarHoraInicio({ force: true })
 }
 
 async function onUnidadChange() {
@@ -1019,10 +1090,12 @@ async function onUnidadChange() {
   form.operador_id = isEncargado.value ? '' : form.operador_id
   limpiarMovilSeleccionado()
   store.movilAsignado = null
+  if (!form.un_id) return
   // Cargar tipos de proceso y operadores de esta UN en paralelo
   await Promise.all([
     store.fetchTiposProceso(form.un_id),
     store.fetchMoviles(form.un_id),
+    store.fetchLugaresCarga(form.un_id),
     isEncargado.value ? store.fetchOperadores(form.un_id) : Promise.resolve(),
   ])
 }
@@ -1046,7 +1119,9 @@ function onTipoProcesoChange() {
 async function onPredioChange() {
   form.rodal_id = ''
   form.rodal_manual = ''
-  await store.fetchRodales(form.predio_id)
+  if (form.predio_id) {
+    await store.fetchRodales(form.predio_id)
+  }
 }
 
 // ─── Watch combustible toggle ───
@@ -1126,17 +1201,22 @@ function resolveProduccion() {
 }
 
 async function autocompletarHoraInicio({ force = false } = {}) {
-  if (!form.operador_id) return
+  // Need at least a machine or an operator to query
+  if (!form.cod_equipo && !form.operador_id) return
 
   const params = {
-    cod_operador: form.operador_id,
+    // When machine is selected, omit cod_operador so the backend searches
+    // across ALL operators for that machine (last hr_fin of the machine itself).
+    ...(form.cod_equipo
+      ? { cod_equipo: form.cod_equipo }
+      : { cod_operador: form.operador_id }),
     cod_un: form.un_id || undefined,
     codigo_tabla: form.tipo_de_proceso_id || undefined,
-    cod_equipo: form.cod_equipo || undefined,
   }
 
   const data = await store.fetchUltimaHoraFin(params)
   const ultimaHoraFin = Number(data?.hr_fin || 0)
+  ultimaHoraFinRef.value = ultimaHoraFin
 
   if (ultimaHoraFin > 0 && (force || form.hr_inicio <= 0)) {
     form.hr_inicio = ultimaHoraFin
@@ -1167,10 +1247,14 @@ async function handleSubmit() {
     }
 
     if (!horasValidas.value) {
+      const inicio = Number(form.hr_inicio)
+      const msg = (ultimaHoraFinRef.value > 0 && inicio > 0 && inicio < ultimaHoraFinRef.value)
+        ? `La hora de inicio (${form.hr_inicio}) no puede ser menor al fin del registro anterior (${ultimaHoraFinRef.value}).`
+        : 'La hora de inicio y fin deben ser mayores a 0, y la hora final no puede ser menor a la inicial.'
       await Swal.fire({
         icon: 'warning',
         title: 'Horas inválidas',
-        text: 'La hora de inicio y fin deben ser mayores a 0, y la hora final debe ser mayor a la inicial.',
+        text: msg,
         confirmButtonColor: '#3d935d',
       })
       return
@@ -1244,19 +1328,35 @@ async function handleSubmit() {
       cadena: form.cadena,
       pinon: form.pinon,
       cantidad_cadenas: form.cantidad_cadenas,
+      pies_16: esProceso.value ? form.pies_16 : 0,
+      pies_14: esProceso.value ? form.pies_14 : 0,
+      pies_12: esProceso.value ? form.pies_12 : 0,
+      pies_10: esProceso.value ? form.pies_10 : 0,
+      pulpable: esProceso.value ? form.pulpable : 0,
+      lugar_carga: form.lugar_carga_id || 0,
       unidad_produccion: resolveUnidadProduccion(),
       tabla: 'tipo_de_proceso',
       codigo_tabla: form.tipo_de_proceso_id || 0,
     }
 
-    await store.submitProduccion(payload)
+    const result = await store.submitProduccion(payload)
 
-    await Swal.fire({
-      icon: 'success',
-      title: 'Registro guardado',
-      text: 'El registro de producción se guardó correctamente.',
-      confirmButtonColor: '#3d935d',
-    })
+    if (result?.offline) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Guardado localmente',
+        text: 'Sin conexión. El registro fue guardado en este dispositivo y se enviará automáticamente al recuperar la conexión.',
+        confirmButtonColor: '#3d935d',
+        confirmButtonText: 'Entendido',
+      })
+    } else {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Registro guardado',
+        text: 'El registro de producción se guardó correctamente.',
+        confirmButtonColor: '#3d935d',
+      })
+    }
 
     router.push({ name: 'home' })
   } catch {

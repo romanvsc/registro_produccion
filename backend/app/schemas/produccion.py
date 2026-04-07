@@ -90,6 +90,15 @@ class UltimaHoraFinResponse(BaseModel):
     hr_fin: float | None = None
 
 
+# --- Lugar de Carga ---
+class LugarCargaResponse(BaseModel):
+    idLugarCarga: int
+    detalle: str
+
+    class Config:
+        from_attributes = True
+
+
 # --- Tablero Produccion ---
 class TableroProduccionCreate(BaseModel):
     UN: str = ""
@@ -130,6 +139,12 @@ class TableroProduccionCreate(BaseModel):
     cadena: int = 0
     pinon: int = 0
     cantidad_cadenas: int = 0
+    pies_16: float = 0
+    pies_14: float = 0
+    pies_12: float = 0
+    pies_10: float = 0
+    pulpable: float = 0
+    lugar_carga: int = 0
     tabla: str = "tipo_de_proceso"
     codigo_tabla: int = 0
 
@@ -171,6 +186,12 @@ class TableroProduccionResponse(BaseModel):
     cadena: int = 0
     pinon: int = 0
     cantidad_cadenas: int = 0
+    pies_16: float = 0
+    pies_14: float = 0
+    pies_12: float = 0
+    pies_10: float = 0
+    pulpable: float = 0
+    lugar_carga: int = 0
 
     class Config:
         from_attributes = True
