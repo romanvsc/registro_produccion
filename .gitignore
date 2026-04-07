@@ -62,3 +62,5 @@ htmlcov/
 .tox/
 AGENTS.MD
 migrations.sql
+.agents/
+skills-lock.json

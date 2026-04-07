@@ -85,3 +85,8 @@ class TableroProduccion(Base):
     neto_origen = Column(Float, nullable=False, default=0)
     neto_destino = Column(Float, nullable=False, default=0)
     proveedor_id = Column(Integer, nullable=True)
+    pies_16 = Column(Numeric(12, 2), nullable=False, default=0)
+    pies_14 = Column(Numeric(12, 2), nullable=False, default=0)
+    pies_12 = Column(Numeric(12, 2), nullable=False, default=0)
+    pies_10 = Column(Numeric(12, 2), nullable=False, default=0)
+    pulpable = Column(Numeric(12, 2), nullable=False, default=0)

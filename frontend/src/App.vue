@@ -1,5 +1,16 @@
 <template>
   <div id="app" class="min-h-screen bg-neutral-100">
+    <!-- Offline banner -->
+    <div
+      v-if="!isOnline"
+      class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-amber-500 text-white text-xs font-semibold py-1.5 px-3"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22" /><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" /><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" /><path d="M10.71 5.05A16 16 0 0 1 22.56 9" /><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" /><path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><line x1="12" x2="12.01" y1="20" y2="20" />
+      </svg>
+      Sin conexión · Los registros se guardarán localmente y se sincronizarán al reconectar
+      <span v-if="produccionStore.pendingCount > 0" class="ml-1 bg-white/20 rounded px-1.5">{{ produccionStore.pendingCount }} pendiente{{ produccionStore.pendingCount !== 1 ? 's' : '' }}</span>
+    </div>
     <template v-if="authStore.isAuthenticated">
       <header v-if="!isProduccionRoute" class="md:hidden bg-white border-b border-neutral-200">
         <div class="h-14 px-4 flex items-center justify-between">
@@ -123,14 +134,50 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProduccionStore } from '@/stores/produccion'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const produccionStore = useProduccionStore()
 const isProduccionRoute = computed(() => route.name === 'produccion')
+
+// ─── Offline / sync management ───
+const isOnline = ref(navigator.onLine)
+const SYNC_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
+let syncIntervalId = null
+
+async function handleOnline() {
+  isOnline.value = true
+  if (navigator.onLine && authStore.isAuthenticated) {
+    await produccionStore.syncPending()
+  }
+}
+
+function handleOffline() {
+  isOnline.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('online', handleOnline)
+  window.addEventListener('offline', handleOffline)
+
+  // Periodic sync every 5 minutes when online
+  syncIntervalId = setInterval(async () => {
+    if (navigator.onLine && authStore.isAuthenticated) {
+      await produccionStore.syncPending()
+    }
+  }, SYNC_INTERVAL_MS)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('online', handleOnline)
+  window.removeEventListener('offline', handleOffline)
+  if (syncIntervalId) clearInterval(syncIntervalId)
+})
 
 function handleLogout() {
   authStore.logout()
