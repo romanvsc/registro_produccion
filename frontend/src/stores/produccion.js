@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import db from '@/services/db'
 
 const ensureArray = (value) => (Array.isArray(value) ? value : [])
 
@@ -15,6 +16,8 @@ export const useProduccionStore = defineStore('produccion', {
     actas: [],
     predios: [],
     rodales: [],
+    lugaresCarga: [],
+    pendingCount: 0,
     loading: false,
     submitting: false,
     error: null,
@@ -131,6 +134,19 @@ export const useProduccionStore = defineStore('produccion', {
       }
     },
 
+    async fetchLugaresCarga(unId) {
+      this.lugaresCarga = []
+      if (!unId) return
+      try {
+        const { data } = await api.get('/api/produccion/lugares-carga', {
+          params: { un_id: unId },
+        })
+        this.lugaresCarga = ensureArray(data)
+      } catch (err) {
+        console.error('Error loading lugares de carga:', err)
+      }
+    },
+
     async fetchUltimaHoraFin(params) {
       try {
         const { data } = await api.get('/api/produccion/ultima-hora-fin', { params })
@@ -145,14 +161,58 @@ export const useProduccionStore = defineStore('produccion', {
       this.submitting = true
       this.error = null
       try {
+        // If offline, queue locally instead of posting
+        if (!navigator.onLine) {
+          await db.pendingRecords.add({
+            payload: formData,
+            timestamp: Date.now(),
+            synced: 0,
+          })
+          await this.refreshPendingCount()
+          return { offline: true }
+        }
+
         const { data } = await api.post('/api/produccion', formData)
         return data
       } catch (err) {
+        // Network error → queue for later
+        if (!err.response) {
+          await db.pendingRecords.add({
+            payload: formData,
+            timestamp: Date.now(),
+            synced: 0,
+          })
+          await this.refreshPendingCount()
+          return { offline: true }
+        }
         this.error = err.response?.data?.detail || 'Error al guardar el registro'
         throw err
       } finally {
         this.submitting = false
       }
+    },
+
+    async refreshPendingCount() {
+      this.pendingCount = await db.pendingRecords.where('synced').equals(0).count()
+    },
+
+    async syncPending() {
+      const pending = await db.pendingRecords.where('synced').equals(0).toArray()
+      if (!pending.length) return
+
+      let successCount = 0
+      for (const record of pending) {
+        try {
+          await api.post('/api/produccion', record.payload)
+          await db.pendingRecords.delete(record.id)
+          successCount++
+        } catch {
+          // Leave in queue; will retry next cycle
+        }
+      }
+
+      await this.refreshPendingCount()
+      return successCount
     },
 
     // Carga inicial de catálogos
@@ -165,6 +225,7 @@ export const useProduccionStore = defineStore('produccion', {
           this.fetchPredios(),
           this.fetchAllTiposProceso(),
         ])
+        await this.refreshPendingCount()
       } finally {
         this.loading = false
       }

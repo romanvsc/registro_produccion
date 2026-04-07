@@ -240,6 +240,17 @@ INSERT INTO tipo_proceso_kpi (tipo_proceso_id, kpi_id, orden, es_principal) VALU
   (10, 14, 5, 0);
 
 -- ACOPIO BIOMASA (11) → tn_despachadas(P), combustible, horas_trabajadas, eficiencia, registros
+
+-- =============================================================
+-- Migración 2026-04-02: Nuevos campos en tablero_produccion
+-- Pies (16/14/12/10) y pulpable para tipo de proceso PROCESO
+-- =============================================================
+ALTER TABLE tablero_produccion
+  ADD COLUMN IF NOT EXISTS pies_16  DECIMAL(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pies_14  DECIMAL(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pies_12  DECIMAL(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pies_10  DECIMAL(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS pulpable DECIMAL(12,2) NOT NULL DEFAULT 0;
 INSERT INTO tipo_proceso_kpi (tipo_proceso_id, kpi_id, orden, es_principal) VALUES
   (11, 1,  1, 1),
   (11, 10, 2, 0),
