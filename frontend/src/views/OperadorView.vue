@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="bg-white border-b border-neutral-200 shadow-sm">
       <div class="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-        <button @click="$router.back()" class="p-2 rounded-xl hover:bg-neutral-100 transition-colors text-neutral-500">
+        <button @click="$router.back()" aria-label="Volver" title="Volver" class="p-2 rounded-xl hover:bg-neutral-100 transition-colors text-neutral-500">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div>
