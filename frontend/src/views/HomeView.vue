@@ -45,37 +45,37 @@
         </div>
       </button>
 
-      <!-- Secondary actions -->
-      <div class="grid grid-cols-2 gap-4 w-full">
-        <!-- Mis registros -->
-        <button
-          @click="$router.push({ name: 'mis-registros' })"
-          class="bg-white rounded-[1.4rem] py-6 px-4 flex flex-col items-center gap-3 shadow-sm border border-neutral-200 active:scale-[0.98] transition-transform duration-150 hover:border-primary/40"
-        >
-          <div class="w-12 h-12 rounded-[0.9rem] bg-primary-light/25 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-primary-dark">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-          </div>
-          <span class="text-[1.2rem] font-extrabold text-neutral-700 tracking-wide uppercase">Mis Registros</span>
-        </button>
+      <!-- Secondary action -->
+      <!-- Operator: Mis Registros (sus propios datos) -->
+      <button
+        v-if="authStore.user?.encargado !== 1"
+        @click="$router.push({ name: 'mis-registros' })"
+        class="w-full bg-white rounded-[1.4rem] py-5 px-6 flex items-center gap-4 shadow-sm border border-neutral-200 active:scale-[0.98] transition-transform duration-150 hover:border-primary/40"
+      >
+        <div class="w-12 h-12 rounded-[0.9rem] bg-primary-light/25 flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-primary-dark">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <span class="text-[1.3rem] font-extrabold text-neutral-700 tracking-wide uppercase">Mis Registros</span>
+      </button>
 
-        <!-- Ver dashboard -->
-        <button
-          @click="$router.push({ name: 'dashboard' })"
-          class="bg-white rounded-[1.4rem] py-6 px-4 flex flex-col items-center gap-3 shadow-sm border border-neutral-200 active:scale-[0.98] transition-transform duration-150 hover:border-primary/40"
-        >
-          <div class="w-12 h-12 rounded-[0.9rem] bg-primary-light/25 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-primary-dark">
-              <rect x="3" y="3" width="7" height="7" rx="1"/>
-              <rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/>
-              <rect x="14" y="14" width="7" height="7" rx="1"/>
-            </svg>
-          </div>
-          <span class="text-[1.2rem] font-extrabold text-neutral-700 tracking-wide uppercase">Ver Dashboard</span>
-        </button>
-      </div>
+      <!-- Manager: Ver Dashboard (general del frente de trabajo) -->
+      <button
+        v-if="authStore.user?.encargado === 1"
+        @click="$router.push({ name: 'dashboard' })"
+        class="w-full bg-white rounded-[1.4rem] py-5 px-6 flex items-center gap-4 shadow-sm border border-neutral-200 active:scale-[0.98] transition-transform duration-150 hover:border-primary/40"
+      >
+        <div class="w-12 h-12 rounded-[0.9rem] bg-primary-light/25 flex items-center justify-center flex-shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-primary-dark">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
+        <span class="text-[1.3rem] font-extrabold text-neutral-700 tracking-wide uppercase">Ver Dashboard</span>
+      </button>
 
     </div>
   </div>
