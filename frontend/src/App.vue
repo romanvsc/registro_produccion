@@ -17,6 +17,18 @@
           <span class="text-primary font-extrabold text-xl leading-none">Registro Producción</span>
           <div class="flex items-center gap-3">
             <button
+              v-if="deferredInstallPrompt"
+              @click="installApp"
+              class="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-primary border border-primary rounded-full"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Instalar
+            </button>
+            <button
               @click="handleLogout"
               class="px-4 py-1.5 text-xs font-semibold text-neutral-600 border border-neutral-300 rounded-full"
             >
@@ -70,6 +82,18 @@
             </div>
             <div class="flex items-center gap-4">
               <span class="text-sm text-neutral-500">{{ authStore.userName }}</span>
+              <button
+                v-if="deferredInstallPrompt"
+                @click="installApp"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary border border-primary hover:bg-primary/5 rounded-lg transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Instalar
+              </button>
               <button
                 @click="handleLogout"
                 class="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-error border border-neutral-300 hover:border-error rounded-lg transition-colors"
@@ -168,6 +192,27 @@ const authStore = useAuthStore()
 const produccionStore = useProduccionStore()
 const isProduccionRoute = computed(() => route.name === 'produccion')
 
+// ─── PWA install prompt ───
+const deferredInstallPrompt = ref(null)
+
+function handleBeforeInstallPrompt(e) {
+  e.preventDefault()
+  deferredInstallPrompt.value = e
+}
+
+function handleAppInstalled() {
+  deferredInstallPrompt.value = null
+}
+
+async function installApp() {
+  if (!deferredInstallPrompt.value) return
+  deferredInstallPrompt.value.prompt()
+  const { outcome } = await deferredInstallPrompt.value.userChoice
+  if (outcome === 'accepted') {
+    deferredInstallPrompt.value = null
+  }
+}
+
 // ─── Offline / sync management ───
 const isOnline = ref(navigator.onLine)
 const SYNC_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
@@ -185,6 +230,8 @@ function handleOffline() {
 }
 
 onMounted(() => {
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+  window.addEventListener('appinstalled', handleAppInstalled)
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
 
@@ -197,6 +244,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+  window.removeEventListener('appinstalled', handleAppInstalled)
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
   if (syncIntervalId) clearInterval(syncIntervalId)
