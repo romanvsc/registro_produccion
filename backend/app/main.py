@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.config import settings
 from app.core.database import engine
-from app.api.routes import items, auth, produccion, dashboard, admin, combustible
+from app.api.routes import items, auth, produccion, parte_caminos, dashboard, admin, combustible, motivos_no_operativos
 
 import pymysql
 
@@ -20,22 +20,32 @@ SAFE_DATABASE_ERROR_DETAIL = "No se pudieron cargar los datos necesarios. Actual
 SAFE_SERVER_ERROR_DETAIL = "No se pudo completar la operacion. Intenta nuevamente en unos minutos."
 SAFE_VALIDATION_ERROR_DETAIL = "Los datos enviados no son validos. Revisa los campos del formulario e intenta nuevamente."
 
-# Pydantic 2.x wraps custom `ValueError(...)` raised inside validators as
-# "Value error, <message>". Strip the prefix so the user-facing toast gets a
-# clean sentence instead of a cryptic Pydantic tag.
 _VALUE_ERROR_PREFIX = "Value error, "
+_VALIDATION_FIELD_LABELS = {
+    "form_uuid": "identificador del formulario",
+    "equipo": "equipo",
+    "operador": "operador",
+    "UN": "unidad de negocio",
+    "motivo_no_op": "motivo no operativo",
+    "observaciones": "observaciones",
+    "predio": "predio",
+    "acta": "acta",
+    "rodal": "rodal",
+    "remito": "remito 1",
+    "remito2": "remito 2",
+    "remito3": "remito 3",
+}
+
+
+def _validation_field_label(err: dict) -> str | None:
+    location = err.get("loc") or ()
+    for part in reversed(location):
+        if isinstance(part, str) and part not in {"body", "query", "path"}:
+            return _VALIDATION_FIELD_LABELS.get(part)
+    return None
 
 
 def _humanize_validation_error(exc: RequestValidationError) -> str:
-    """Build a single, user-friendly sentence for a Pydantic validation error.
-
-    Priority:
-      1. Any custom `ValueError` raised from a model validator (e.g. combustible
-         business rules) — these messages are already written in Spanish.
-      2. The first typed validation error rendered into a short Spanish message
-         via a small map of common Pydantic error types.
-      3. The generic fallback so we never leak a raw Pydantic payload to the UI.
-    """
     errors = exc.errors() or []
     for err in errors:
         if err.get("type") == "value_error":
@@ -56,13 +66,17 @@ def _humanize_validation_error(exc: RequestValidationError) -> str:
         "json_invalid": "el cuerpo de la solicitud no tiene un formato valido",
     }
     for err in errors:
-        translated = type_messages.get(err.get("type", ""))
+        error_type = err.get("type", "")
+        if error_type == "string_too_long":
+            field_label = _validation_field_label(err)
+            if field_label:
+                return f"El campo {field_label} excede el tamano maximo permitido"
+        translated = type_messages.get(error_type)
         if translated:
             return translated
-
     return SAFE_VALIDATION_ERROR_DETAIL
 
-# CORS
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -72,7 +86,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global exception handler — ensures CORS headers are always sent even on 500
+
 def _is_allowed_origin(origin: str) -> bool:
     return origin in settings.ALLOWED_ORIGINS or bool(re.match(settings.ALLOWED_ORIGIN_REGEX, origin))
 
@@ -89,50 +103,30 @@ def _cors_headers_for_request(request: Request) -> dict[str, str]:
 @app.exception_handler(SQLAlchemyError)
 async def database_exception_handler(request: Request, exc: SQLAlchemyError):
     logger.exception("Unhandled database error while processing %s %s", request.method, request.url.path)
-    return JSONResponse(
-        status_code=503,
-        content={"detail": SAFE_DATABASE_ERROR_DETAIL},
-        headers=_cors_headers_for_request(request),
-    )
+    return JSONResponse(status_code=503, content={"detail": SAFE_DATABASE_ERROR_DETAIL}, headers=_cors_headers_for_request(request))
 
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Convert Pydantic validation failures into a single, user-friendly string.
-
-    The default FastAPI handler returns the raw error list, which previously
-    leaked Pydantic internals (URLs to docs, internal field names, full input
-    payload) to the operator-facing toast.
-    """
-    logger.warning(
-        "Validation error while processing %s %s: %s",
-        request.method,
-        request.url.path,
-        exc.errors(),
-    )
-    return JSONResponse(
-        status_code=422,
-        content={"detail": _humanize_validation_error(exc)},
-        headers=_cors_headers_for_request(request),
-    )
+    logger.warning("Validation error while processing %s %s: %s", request.method, request.url.path, exc.errors())
+    return JSONResponse(status_code=422, content={"detail": _humanize_validation_error(exc)}, headers=_cors_headers_for_request(request))
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled application error while processing %s %s", request.method, request.url.path)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": SAFE_SERVER_ERROR_DETAIL},
-        headers=_cors_headers_for_request(request),
-    )
+    return JSONResponse(status_code=500, content={"detail": SAFE_SERVER_ERROR_DETAIL}, headers=_cors_headers_for_request(request))
 
-# Include routers
+
 app.include_router(auth.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
 app.include_router(produccion.router, prefix="/api")
+app.include_router(parte_caminos.router, prefix="/api")
 app.include_router(combustible.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(motivos_no_operativos.router, prefix="/api")
+
 
 @app.get("/")
 async def root():
@@ -163,21 +157,11 @@ async def health():
     if database_ok and expected_db_name:
         try:
             actual_db_name = get_current_database_name()
-            database_name_check = {
-                "expected": expected_db_name,
-                "actual": actual_db_name,
-                "matches": actual_db_name == expected_db_name,
-            }
+            database_name_check = {"expected": expected_db_name, "actual": actual_db_name, "matches": actual_db_name == expected_db_name}
         except Exception:
-            database_name_check = {
-                "expected": expected_db_name,
-                "actual": None,
-                "matches": False,
-            }
+            database_name_check = {"expected": expected_db_name, "actual": None, "matches": False}
 
-    healthy = bool(database_ok) and (
-        database_name_check is None or bool(database_name_check["matches"])
-    )
+    healthy = bool(database_ok) and (database_name_check is None or bool(database_name_check["matches"]))
     payload = {
         "status": "ok" if healthy else "error",
         "service": settings.APP_NAME,
@@ -190,4 +174,3 @@ async def health():
         payload["database"] = "ok" if database_ok else "error"
         payload["database_name"] = database_name_check
     return JSONResponse(status_code=200 if healthy else 503, content=payload)
- 

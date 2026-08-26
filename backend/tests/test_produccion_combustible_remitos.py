@@ -14,6 +14,7 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 
 from app.api.routes import produccion
@@ -89,31 +90,114 @@ def test_schema_rejects_remito_longer_than_twelve_chars(field):
         )
 
 
+# ─── Issue #124: normalizacion de remito a formato canonico ────────────────
+
+
+@pytest.mark.parametrize(
+    ("entrada", "esperado"),
+    [
+        ("1", "000000000001"),
+        ("11278", "000000011278"),
+        ("011278", "000000011278"),
+        ("000000011278", "000000011278"),
+        ("21325", "000000021325"),
+        ("R-0001", "R-0001"),
+        # Formato hifenado: PPPP-DDDDDDDD
+        ("99-99999", "009900099999"),
+        ("02-1335", "000200001335"),
+        ("0000002-1335", "000200001335"),
+    ],
+)
+def test_schema_normaliza_remito_numerico_y_alfanumerico(entrada, esperado):
+    payload = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        combustible=0,
+        remito=entrada,
+    )
+    assert payload.remito == esperado
+
+
+@pytest.mark.parametrize(
+    ("remito2", "remito3", "exp2", "exp3"),
+    [
+        ("11278", "21325", "000000011278", "000000021325"),
+        ("R-0002", "R-0003", "R-0002", "R-0003"),
+        ("", "", "", ""),
+    ],
+)
+def test_schema_normaliza_remito2_y_remito3(remito2, remito3, exp2, exp3):
+    payload = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        combustible=0,
+        remito2=remito2,
+        remito3=remito3,
+    )
+    assert payload.remito2 == exp2
+    assert payload.remito3 == exp3
+
+
+def test_schema_rechaza_remito_con_caracteres_invalidos():
+    with pytest.raises(ValidationError, match="letras, numeros y guion"):
+        TableroProduccionCreate(
+            fecha=date(2026, 7, 28),
+            combustible=0,
+            remito="11.278",
+        )
+
+
+def test_schema_rechaza_remito_numerico_con_mas_de_12_digitos():
+    # El max_length=12 del schema lo corta antes de llegar a mi validador.
+    with pytest.raises(ValidationError, match="at most 12 characters"):
+        TableroProduccionCreate(
+            fecha=date(2026, 7, 28),
+            combustible=0,
+            remito="1234567890123",
+        )
+
+
 # ─── Route: persistencia de remitos ────────────────────────────────────────
 
 
 class FakeQuery:
-    """Query en cadena que devuelve ``None`` para first() y 0 para scalar()."""
+    """Query en cadena que devuelve ``None`` para first() y 0 para scalar().
+
+    Se puede inyectar un set de filas con ``rows=[...]`` para que ``first()``
+    las recorra y devuelva la primera que coincida (sin aplicar realmente los
+    filtros, sirve para tests de dedupe por clave natural).
+    """
+
+    def __init__(self, rows=None):
+        self._rows = rows or []
 
     def filter(self, *_args, **_kwargs):
         return self
 
     def first(self):
-        return None
+        return self._rows[0] if self._rows else None
 
     def scalar(self):
         return 0
 
 
 class FakeDb:
-    """Doble de ``Session`` que registra lo agregado y mockea el resto."""
+    """Doble de ``Session`` que registra lo agregado y mockea el resto.
+
+    ``existing_cargas`` permite inyectar cargas pre-existentes para que las
+    queries de dedupe por clave natural las "encuentren". Para ``CargaComb``
+    las devuelve, para cualquier otro modelo (tablero, func.max) devuelve
+    una query vacia.
+    """
 
     def __init__(self):
         self.added = []
         self.commits = 0
         self.flushes = 0
+        self.existing_cargas = []
 
-    def query(self, *_args, **_kwargs):
+    def query(self, model, *_args, **_kwargs):
+        from app.models.carga_comb import CargaComb as _CargaComb
+        if model is _CargaComb:
+            return FakeQuery(rows=self.existing_cargas)
         return FakeQuery()
 
     def add(self, row):
@@ -219,3 +303,157 @@ def test_schema_rejects_fuel_without_remito():
             lugar_carga=42,
             remito="",
         )
+
+
+# ─── Issue #124: el endpoint persiste el remito ya normalizado ─────────────
+
+
+def test_create_persists_normalized_remito_in_part_and_carga(monkeypatch):
+    db = FakeDb()
+    _bypass_external_deps(monkeypatch)
+
+    payload = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        form_uuid="parte-con-remito-corto",
+        UN="BIOMASA FRESA",
+        cod_un=1,
+        cod_equipo=10,
+        cod_operador=5,
+        combustible=150,
+        km_combustible=14855,
+        lugar_carga=42,
+        id_tipo_comb=2,
+        remito="11278",  # entra sin padding
+        remito2="21325",  # idem
+        remito3="R-0003",  # alfanumerico: se conserva
+    )
+
+    asyncio.run(produccion.create_produccion(payload, db=db, user=SimpleNamespace()))
+
+    tablero = db.added[0]
+    carga = db.added[1]
+    assert tablero.remito == "000000011278"
+    assert tablero.remito2 == "000000021325"
+    assert tablero.remito3 == "R-0003"
+    assert carga.remito == "000000011278"
+    assert carga.remito2 == "000000021325"
+    assert carga.remito3 == "R-0003"
+
+
+def test_create_persists_hyphenated_remito_in_part_and_carga(monkeypatch):
+    """`02-1335` debe guardarse como `000200001335` (4 + 8 digitos)."""
+    db = FakeDb()
+    _bypass_external_deps(monkeypatch)
+
+    payload = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        form_uuid="parte-con-remito-hifenado",
+        UN="BIOMASA FRESA",
+        cod_un=1,
+        cod_equipo=10,
+        cod_operador=5,
+        combustible=150,
+        km_combustible=14855,
+        lugar_carga=42,
+        id_tipo_comb=2,
+        remito="02-1335",
+    )
+
+    asyncio.run(produccion.create_produccion(payload, db=db, user=SimpleNamespace()))
+
+    tablero = db.added[0]
+    carga = db.added[1]
+    assert tablero.remito == "000200001335"
+    assert carga.remito == "000200001335"
+
+
+# ─── Issue #124 (parte 2): dedupe por clave natural en produccion ────────
+
+
+def test_create_produccion_rechaza_carga_duplicada_con_otro_form_uuid(monkeypatch):
+    """Si ya existe una carga con el mismo (movil, fecha, litros, remito)
+    para el mismo operador, el segundo parte con distinto form_uuid rebota
+    con 409 para no duplicar el egreso de stock.
+    """
+    db = FakeDb()
+    _bypass_external_deps(monkeypatch)
+
+    # Simulamos que ya existe la carga original en la base.
+    db.existing_cargas = [
+        SimpleNamespace(
+            idCargaComb=1, idMovil=10, Fecha=date(2026, 7, 28),
+            Litros=150, remito="000000011278", personal=5,
+        )
+    ]
+
+    duplicate = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        form_uuid="parte-retry",
+        UN="BIOMASA FRESA",
+        cod_un=1,
+        cod_equipo=10,
+        cod_operador=5,
+        combustible=150,
+        km_combustible=14856,  # KM puede variar
+        lugar_carga=42,
+        id_tipo_comb=2,
+        remito="000000011278",
+    )
+
+    from app.models.carga_comb import CargaComb as _CargaComb
+
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(
+            produccion.create_produccion(
+                duplicate, db=db, user=SimpleNamespace()
+            )
+        )
+    assert excinfo.value.status_code == 409
+    assert "Ya existe una carga" in excinfo.value.detail
+    # El CargaComb (que es lo que duplica el egreso de stock) NO se agrega.
+    # El TableroProduccion puede haber sido agregado antes del check, pero
+    # en una DB real el rollback limpia la transaccion completa.
+    cargas_agregadas = [r for r in db.added if isinstance(r, _CargaComb)]
+    assert len(cargas_agregadas) == 0
+    # Y ademas, el commit no se ejecuto (la transaccion queda abierta para
+    # que FastAPI haga rollback).
+    assert db.commits == 0
+
+
+def test_create_produccion_permite_cargas_con_remito_distinto(monkeypatch):
+    """Dos partes en la misma fecha, mismo movil, mismo operador pero
+    con remito distinto son legitimos (caso normal de dos cargas en el dia).
+    """
+    db = FakeDb()
+    _bypass_external_deps(monkeypatch)
+
+    a = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        form_uuid="parte-a",
+        UN="BIOMASA FRESA",
+        cod_un=1,
+        cod_equipo=10,
+        cod_operador=5,
+        combustible=150,
+        km_combustible=14855,
+        lugar_carga=42,
+        id_tipo_comb=2,
+        remito="000000011278",
+    )
+    b = TableroProduccionCreate(
+        fecha=date(2026, 7, 28),
+        form_uuid="parte-b",
+        UN="BIOMASA FRESA",
+        cod_un=1,
+        cod_equipo=10,
+        cod_operador=5,
+        combustible=150,
+        km_combustible=14855,
+        lugar_carga=42,
+        id_tipo_comb=2,
+        remito="000000011279",  # remito distinto
+    )
+    asyncio.run(produccion.create_produccion(a, db=db, user=SimpleNamespace()))
+    asyncio.run(produccion.create_produccion(b, db=db, user=SimpleNamespace()))
+
+    assert len(db.added) == 4  # 2 tableros + 2 cargas

@@ -14,12 +14,9 @@ from pydantic import BaseModel
 
 
 class RegistroListItem(BaseModel):
-    """DTO de un registro individual para el listado paginado.
-
-    Contiene los campos clave que se muestran en la fila/tarjeta de la lista.
-    El detalle completo (RegistroDetail) se obtiene via GET /registros/{id}.
-    """
+    """DTO de un registro individual o un parte agrupado de Caminos."""
     id: int
+    UN: str = ""
     fecha: Optional[date] = None
     operacion: str = ""
     equipo: str = ""
@@ -41,11 +38,15 @@ class RegistroListItem(BaseModel):
     plantas: int = 0
     km_carreteo: float = 0
     km_perfilado: float = 0
+    hr_disposicion: float = 0
+    hr_remolque: float = 0
     mtrs_recorridos: int = 0
     remito: str = ""
     remito2: str = ""
     remito3: str = ""
     remito_bitren: str = ""
+    form_uuid: str = ""
+    procesos_count: int = 1
 
     class Config:
         from_attributes = True
@@ -63,25 +64,17 @@ class RegistrosPagedResponse(BaseModel):
 
 
 class RegistroDetail(RegistroListItem):
-    """DTO completo de un registro individual (issue #104).
-
-    Reune los campos que pueden llegar a ser utiles al operario/encargado que
-    consulta el detalle de una carga: ubicacion, metricas, consumos, remitos,
-    lubricantes, identificadores de produccion, etc. NO expone datos sensibles
-    (passwords, tokens, etc.).
-    """
-    UN: str = ""
+    """DTO completo de un registro individual (issue #104)."""
     acta: str = ""
     rodal: str = ""
     predio: str = ""
-    parcela: str = ""
+    parcela: Optional[str] = None
     lugar_carga: int = 0
     produccion: float = 0
     unitario: float = 0
     unidad_produccion: str = ""
     tarifa: float = 0
     fijo: float = 0
-    hr_disposicion: float = 0
     km_camioneta: int = 0
     servicio_tercero: int = 0
     detalle_servicio: str = ""
@@ -100,22 +93,22 @@ class RegistroDetail(RegistroListItem):
     cadena: int = 0
     pinon: int = 0
     cantidad_cadenas: int = 0
-    giro_pinon: int = 0
+    giro_pinon: Optional[int] = None
     pies_16: float = 0
     pies_14: float = 0
     pies_12: float = 0
     pies_10: float = 0
     pulpable: float = 0
-    remito_proveedor: str = ""
-    remito_fgpy: str = ""
-    nombre_chofer: str = ""
-    cliente_camion: str = ""
-    origen_camion: str = ""
-    destino_camion: str = ""
+    remito_proveedor: Optional[str] = None
+    remito_fgpy: Optional[str] = None
+    nombre_chofer: Optional[str] = None
+    cliente_camion: Optional[str] = None
+    origen_camion: Optional[str] = None
+    destino_camion: Optional[str] = None
     origen: str = ""
     origen_destino_id: int = 0
     fecha_hora: Optional[datetime] = None
-    usuario: str = ""
+    usuario: Optional[str] = None
     tabla: str = ""
     codigo_tabla: int = 0
     tarifa_empresa: float = 0
@@ -124,6 +117,6 @@ class RegistroDetail(RegistroListItem):
     tara_destino: float = 0
     neto_origen: float = 0
     neto_destino: float = 0
-    hora_inicio_viaje: str = ""
-    hora_fin_viaje: str = ""
+    hora_inicio_viaje: Optional[str] = None
+    hora_fin_viaje: Optional[str] = None
     modificado: int = 0

@@ -240,10 +240,10 @@
                       @click="startRelationRemove(row[meta.idKey], block.key, item.id)"
                       class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-error/35 text-error-dark hover:bg-error-light/30"
                       type="button"
-                      :title="`Quitar ${item.label}`"
-                      :aria-label="`Quitar ${item.label}`"
+                      :title="relationActionConfig(block.key, item).title"
+                      :aria-label="relationActionConfig(block.key, item).title"
                     >
-                      <AppIcon name="close" size="xs" />
+                      <AppIcon :name="relationActionConfig(block.key, item).icon" size="xs" />
                     </button>
                   </div>
                   <p v-if="block.items.length === 0" class="text-sm text-neutral-400">Sin vinculaciones.</p>
@@ -396,10 +396,10 @@
                               @click="startRelationRemove(row[meta.idKey], block.key, item.id)"
                               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-error/35 text-error-dark hover:bg-error-light/30"
                               type="button"
-                              :title="`Quitar ${item.label}`"
-                              :aria-label="`Quitar ${item.label}`"
+                              :title="relationActionConfig(block.key, item).title"
+                              :aria-label="relationActionConfig(block.key, item).title"
                             >
-                              <AppIcon name="close" size="xs" />
+                              <AppIcon :name="relationActionConfig(block.key, item).icon" size="xs" />
                             </button>
                           </div>
                           <p v-if="block.items.length === 0" class="text-sm text-neutral-400">Sin vinculaciones.</p>
@@ -1386,6 +1386,13 @@ function compareRelationLabels(left, right) {
   })
 }
 
+function relationActionConfig(blockKey, item) {
+  if (blockKey === 'moviles') {
+    return { title: `Mover ${item.label}`, icon: 'swap' }
+  }
+  return { title: `Quitar ${item.label}`, icon: 'close' }
+}
+
 function movilBelongsToUnidad(movil, unidadId) {
   if (!movil) return false
   const target = Number(unidadId)
@@ -1456,7 +1463,9 @@ async function unlinkMovilFromUnidad(movilId, unidadId) {
 }
 
 async function moveMovilToUnidad(movilId, unidadId) {
-  await linkMovilToUnidad(movilId, unidadId)
+  await updateRelationEntity('moviles', movilId, {
+    unidad_ids: [Number(unidadId)],
+  })
 }
 
 async function updateRelationEntity(refEntity, id, payload) {

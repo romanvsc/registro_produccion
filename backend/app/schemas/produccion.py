@@ -1,7 +1,9 @@
 from typing import Any
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import date
+
+from app.core.remito import normalize_remito
 
 
 # Numeric fields that the frontend can send as an empty string or null when
@@ -218,10 +220,43 @@ class TableroProduccionCreate(BaseModel):
     remito2: str = Field(default="", max_length=12)
     remito3: str = Field(default="", max_length=12)
 
+    @field_validator("remito", "remito2", "remito3")
+    @classmethod
+    def validate_remito(cls, value: str) -> str:
+        # Issue #124: normalizar el remito al formato canonico (12 digitos
+        # para valores puramente numericos) para evitar que el mismo
+        # comprobante aparezca dos veces en Control de combustible.
+        if value is None or value == "":
+            return ""
+        try:
+            return normalize_remito(value)
+        except ValueError:
+            raise
+
     @model_validator(mode="before")
     @classmethod
     def _normalize_blank_numeric_fields(cls, data: Any) -> Any:
         return _coerce_empty_numeric(data)
+
+    @model_validator(mode="after")
+    def apply_horas_maquinas_production(self):
+        """Issue #146: HORAS MAQUINAS usa el horómetro como fuente de verdad.
+
+        El operador no carga producción manual: se calcula como hr_fin - hr_inicio
+        y se persiste en horas. El cálculo vive en backend para que también aplique
+        a reintentos offline u otros clientes de la API.
+        """
+        if self.operacion.strip().upper() != "HORAS MAQUINAS":
+            return self
+
+        if self.hr_inicio <= 0 or self.hr_fin <= 0:
+            raise ValueError("HORAS MAQUINAS requiere hora de inicio y hora de fin mayores a cero")
+        if self.hr_fin <= self.hr_inicio:
+            raise ValueError("En HORAS MAQUINAS la hora final debe ser mayor a la hora inicial")
+
+        self.produccion = round(self.hr_fin - self.hr_inicio, 2)
+        self.unidad_produccion = "HS"
+        return self
 
     @model_validator(mode="after")
     def validate_combustible_movement(self):
