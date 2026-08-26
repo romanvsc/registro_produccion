@@ -3,10 +3,10 @@
     <section class="rounded-lg border border-neutral-200 bg-primary-dark p-4 text-white shadow-sm">
       <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_34rem] xl:items-end">
         <div>
-          <p class="text-xs font-bold uppercase tracking-wide text-primary-fixed-dim">Resumen ejecutivo</p>
-          <h2 class="mt-1 text-2xl font-extrabold md:text-3xl">Dashboard de producción</h2>
+          <p class="text-xs font-bold uppercase tracking-wide text-primary-fixed-dim">Análisis gerencial</p>
+          <h2 class="mt-1 text-2xl font-extrabold md:text-3xl">Análisis de Producción</h2>
           <p class="mt-2 max-w-2xl text-sm text-primary-fixed-dim">
-            Producción total, toneladas, combustible y actividad operativa para el rango seleccionado.
+            Análisis productivo y gerencial de producción total, toneladas, combustible y actividad para el rango seleccionado.
           </p>
           <p class="mt-3 text-xs font-semibold text-primary-fixed-dim">
             Última actualización: {{ lastUpdatedLabel }} - Rango: {{ rangeLabel }}
@@ -43,7 +43,7 @@
               :class="[
                 'rounded-lg border px-3 py-2 text-xs font-bold transition-colors',
                 activePreset === preset.key
-                  ? 'border-secondary bg-secondary text-white'
+                  ? 'border-secondary bg-secondary text-on-secondary'
                   : 'app-button-soft border',
               ]"
               type="button"
@@ -59,7 +59,7 @@
 
           <button
             @click="loadOverview"
-            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dark disabled:opacity-60"
+            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dark hover:text-on-primary-dark disabled:opacity-60"
             :disabled="store.loadingDashboardOverview"
             type="button"
           >
@@ -71,7 +71,7 @@
     </section>
 
     <div v-if="store.loadingDashboardOverview" class="app-card rounded-lg p-4 text-center text-neutral-500">
-      Cargando resumen ejecutivo...
+      Cargando análisis de producción...
     </div>
 
     <div v-else-if="store.dashboardOverviewError" class="rounded-lg border border-error-light bg-error-light/40 p-4 text-sm font-semibold text-error-dark">
@@ -79,7 +79,7 @@
     </div>
 
     <div v-else-if="!overview" class="app-card rounded-lg p-5 text-center">
-      <p class="font-bold text-neutral-700">No se pudo preparar el dashboard</p>
+      <p class="font-bold text-neutral-700">No se pudo preparar el análisis de producción</p>
       <p class="mt-1 text-sm text-neutral-500">Actualizá el rango para volver a consultar la información.</p>
     </div>
 

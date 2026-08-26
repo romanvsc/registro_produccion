@@ -1,11 +1,13 @@
 <template>
-  <div class="mx-auto max-w-7xl px-3 py-3 pb-[7rem] md:px-4 md:pt-4">
+  <div class="content-narrow mx-auto px-3 py-3 pb-[7rem] md:px-4 md:pt-4">
     <!-- Header -->
     <div class="mb-3 flex items-center justify-between px-1">
       <div class="flex items-center gap-2.5">
       <button
+        type="button"
         @click="$router.push({ name: 'home' })"
         class="p-2 rounded-lg text-neutral-500 hover:bg-neutral-200 transition-colors"
+        aria-label="Volver a Inicio"
       >
         <AppIcon name="back" />
       </button>
@@ -57,7 +59,7 @@
               <span
                 :class="[
                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold',
-                  i < pasoActual ? 'bg-success text-white' : i === pasoActual ? 'bg-primary text-on-primary' : 'app-surface-muted text-neutral-500',
+                  i < pasoActual ? 'bg-success text-on-primary' : i === pasoActual ? 'bg-primary text-on-primary' : 'app-surface-muted text-neutral-500',
                 ]"
               >
                 {{ i < pasoActual ? 'OK' : i + 1 }}
@@ -286,6 +288,7 @@
                 type="button"
                 @mousedown.prevent="limpiarBusquedaMovil"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                aria-label="Limpiar búsqueda de equipos"
               >
                 <AppIcon name="close" size="sm" />
               </button>
@@ -345,20 +348,20 @@
       <SectionCard v-show="pasoActual === 4" title="Control de Tiempo">
         <div class="grid grid-cols-2 gap-4">
           <InputField
-            label="Hora Inicio"
+            label="Horómetro inicial"
             type="number"
             v-model.number="form.hr_inicio"
-            placeholder="Ej: 1200"
+            placeholder="Ej: 1200.5"
             min="1"
             step="any"
             :invalid="mostrarErrorHoras"
             required
           />
           <InputField
-            label="Hora Fin"
+            label="Horómetro final"
             type="number"
             v-model.number="form.hr_fin"
-            placeholder="Ej: 1850"
+            placeholder="Ej: 1850.5"
             min="1"
             step="any"
             :invalid="mostrarErrorHoras"
@@ -370,10 +373,10 @@
           class="mt-3 px-3 py-2 bg-error-light/40 border border-error/30 rounded-lg text-sm text-error-dark"
         >
           <span v-if="Number(form.hr_inicio) > 0 && ultimaHoraFinRef > 0 && Number(form.hr_inicio) < ultimaHoraFinRef">
-            La hora de inicio ({{ form.hr_inicio }}) no puede ser menor al fin del registro anterior ({{ ultimaHoraFinRef }}).
+            El horómetro inicial ({{ form.hr_inicio }}) no puede ser menor al horómetro final del registro anterior ({{ ultimaHoraFinRef }}).
           </span>
           <span v-else>
-            La hora de inicio y fin deben ser mayores a 0, y la hora final no puede ser menor a la inicial.
+            Las lecturas de horómetro deben ser mayores a 0, y la lectura final no puede ser menor a la inicial.
           </span>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-3">
@@ -500,22 +503,22 @@
             />
           </template>
 
-          <!-- Hora inicio / fin (para HORAS MAQUINAS) -->
+          <!-- Horómetro inicial / final (para HORAS MAQUINAS) -->
           <div v-if="camposActivos.includes('hora_inicio')" class="grid grid-cols-2 gap-4">
             <InputField
-              label="Hora Inicio Máq."
+              label="Horómetro inicial"
               type="number"
               v-model.number="form.hr_inicio"
-              placeholder="Ej: 1200"
+              placeholder="Ej: 1200.5"
               min="1"
               step="any"
               :invalid="mostrarErrorHoras || (mostrarErrorProduccion && form.hr_inicio <= 0)"
             />
             <InputField
-              label="Hora Fin Máq."
+              label="Horómetro final"
               type="number"
               v-model.number="form.hr_fin"
-              placeholder="Ej: 1850"
+              placeholder="Ej: 1850.5"
               min="1"
               step="any"
               :invalid="mostrarErrorHoras || (mostrarErrorProduccion && form.hr_fin <= form.hr_inicio)"
@@ -523,11 +526,11 @@
           </div>
           <div v-if="camposActivos.includes('hora_inicio') && form.hr_fin > form.hr_inicio"
                class="px-3 py-2 bg-info-light/50 border border-info/30 rounded-lg text-sm text-info-dark">
-            Horas trabajadas: <strong>{{ form.hr_fin - form.hr_inicio }}</strong>
+            Diferencia de horómetro: <strong>{{ form.hr_fin - form.hr_inicio }}</strong>
           </div>
           <div v-if="camposActivos.includes('hora_inicio') && mostrarErrorHoras"
                class="px-3 py-2 bg-error-light/40 border border-error/30 rounded-lg text-sm text-error-dark">
-            La hora de inicio y fin deben ser mayores a 0, y la hora final debe ser mayor a la inicial.
+            Las lecturas de horómetro deben ser mayores a 0, y la lectura final debe ser mayor a la inicial.
           </div>
 
           <!-- HAS (hectáreas) -->
@@ -582,6 +585,9 @@
           <span class="text-sm font-medium text-neutral-700">¿Se cargó combustible?</span>
           <button
             type="button"
+            role="switch"
+            :aria-checked="cargoCombustible"
+            aria-label="¿Se cargó combustible?"
             @click="cargoCombustible = !cargoCombustible"
             :class="[
               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
@@ -940,7 +946,7 @@
             type="button"
             @click="avanzar"
             :disabled="!puedeAvanzar"
-            class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary shadow-[0_4px_14px_rgba(20,61,35,0.25)] transition-colors active:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary shadow-[0_4px_14px_rgba(20,61,35,0.25)] transition-colors active:bg-primary-dark active:text-on-primary-dark disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             Siguiente
             <AppIcon name="forward" size="sm" :stroke-width="2.5" />
@@ -949,7 +955,7 @@
             v-else
             type="submit"
             :disabled="store.submitting"
-            class="flex flex-1 items-center justify-center gap-2.5 rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary shadow-[0_8px_18px_rgba(20,61,35,0.25)] transition-colors active:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex flex-1 items-center justify-center gap-2.5 rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary shadow-[0_8px_18px_rgba(20,61,35,0.25)] transition-colors active:bg-primary-dark active:text-on-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             <AppIcon v-if="store.submitting" name="loading" class="animate-spin" />
             <AppIcon v-else name="save" />
@@ -1326,7 +1332,7 @@ const revisionItems = computed(() => [
   { label: 'Operador', value: getOperadorNombre(form.operador_id) || 'Pendiente' },
   { label: 'Equipo', value: movilSeleccionadoDetalle.value || 'Pendiente' },
   { label: 'Proceso', value: tipoProcesoNombre.value || 'Pendiente' },
-  { label: 'Horario', value: `${form.hr_inicio || '-'} a ${form.hr_fin || '-'}` },
+  { label: 'Horómetros', value: `${form.hr_inicio || '-'} a ${form.hr_fin || '-'}` },
   { label: 'Producción', value: `${resolveProduccion() || 0} ${resolveUnidadProduccion() || ''}`.trim() },
   { label: 'Ubicación', value: [form.acta ? `Acta ${form.acta}` : '', getPredioNombre(form.predio_id), getRodalNombre()].filter(Boolean).join(' / ') || 'Pendiente' },
 ])
@@ -1341,9 +1347,9 @@ const mensajePasoIncompleto = computed(() => {
   if (pasoActual.value === 4 && !horasValidas.value) {
     const inicio = Number(form.hr_inicio)
     if (ultimaHoraFinRef.value > 0 && inicio > 0 && inicio < ultimaHoraFinRef.value) {
-      return `La hora de inicio (${form.hr_inicio}) no puede ser menor al fin del registro anterior (${ultimaHoraFinRef.value}).`
+      return `El horómetro inicial (${form.hr_inicio}) no puede ser menor al horómetro final del registro anterior (${ultimaHoraFinRef.value}).`
     }
-    return 'Revisá las horas: inicio y fin deben ser mayores a 0, y fin no puede ser menor al inicio.'
+    return 'Revisá las lecturas de horómetro: inicio y fin deben ser mayores a 0, y la lectura final no puede ser menor a la inicial.'
   }
   if (pasoActual.value === 5 && !produccionValida.value) {
     return 'Completá los campos de producción con valores mayores a 0 para continuar.'
@@ -1741,11 +1747,11 @@ async function handleSubmit() {
     if (!horasValidas.value) {
       const inicio = Number(form.hr_inicio)
       const msg = (ultimaHoraFinRef.value > 0 && inicio > 0 && inicio < ultimaHoraFinRef.value)
-        ? `La hora de inicio (${form.hr_inicio}) no puede ser menor al fin del registro anterior (${ultimaHoraFinRef.value}).`
-        : 'La hora de inicio y fin deben ser mayores a 0, y la hora final no puede ser menor a la inicial.'
+        ? `El horómetro inicial (${form.hr_inicio}) no puede ser menor al horómetro final del registro anterior (${ultimaHoraFinRef.value}).`
+        : 'Las lecturas de horómetro deben ser mayores a 0, y la lectura final no puede ser menor a la inicial.'
       await Swal.fire({
         icon: 'warning',
-        title: 'Horas inválidas',
+        title: 'Lecturas de horómetro inválidas',
         text: msg,
         confirmButtonColor: '#3d935d',
       })

@@ -130,7 +130,7 @@
                 <button
                   type="submit"
                   :disabled="authStore.loading"
-                  class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary-dark px-4 text-sm font-extrabold text-white transition-colors hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary-dark px-4 text-sm font-extrabold text-white transition-colors hover:bg-primary hover:text-on-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <AppIcon v-if="authStore.loading" name="loading" class="animate-spin" />
                   <AppIcon v-else name="login" />
@@ -264,7 +264,7 @@
               <button
                 type="submit"
                 :disabled="authStore.loading"
-                class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary-dark px-4 text-sm font-extrabold text-white transition-colors hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary-dark px-4 text-sm font-extrabold text-white transition-colors hover:bg-primary hover:text-on-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <AppIcon v-if="authStore.loading" name="loading" class="animate-spin" />
                 <AppIcon v-else name="login" />

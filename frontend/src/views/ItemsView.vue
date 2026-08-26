@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-[var(--app-bg)] px-3 py-3 pb-20 md:px-4 md:py-4">
-    <div class="mx-auto max-w-6xl space-y-3">
+    <div class="content-default mx-auto space-y-3">
       <PageHeader title="Items" description="Catálogo operativo disponible para producción.">
         <template #actions>
           <AppButton variant="secondary" :loading="loading" @click="fetchItems">

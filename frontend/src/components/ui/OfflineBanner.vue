@@ -48,9 +48,9 @@ const bannerClasses = computed(() => {
   // Background depends on what is wrong: pure offline (amber) vs backend
   // unreachable but online (red). Both mean "no sincronization right now".
   if (connectivity.isOffline) {
-    return 'bg-amber-500 text-white'
+    return 'bg-amber-500 text-on-warning'
   }
-  return 'bg-error text-white'
+  return 'bg-error text-on-error'
 })
 
 const icon = computed(() => 'offline')

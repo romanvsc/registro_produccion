@@ -17,7 +17,7 @@
         />
         <button
           @click="loadUsuarios"
-          class="min-h-10 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dark"
+          class="min-h-10 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dark hover:text-on-primary-dark"
           type="button"
         >
           Refrescar

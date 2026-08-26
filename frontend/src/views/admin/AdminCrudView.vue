@@ -167,6 +167,7 @@
                       class="app-button-soft inline-flex min-h-9 w-9 items-center justify-center rounded-md border text-info-dark hover:border-secondary/40"
                       type="button"
                       :title="`Agregar ${block.title}`"
+                      :aria-label="`Agregar ${block.title}`"
                     >
                       <AppIcon name="add" size="xs" />
                     </button>
@@ -199,10 +200,10 @@
                       {{ option.label }}
                     </option>
                   </select>
-                  <button class="rounded-md bg-primary px-2 text-white" type="button" @click="confirmRelationAdd">
+                  <button class="rounded-md bg-primary px-2 text-on-primary" type="button" aria-label="Guardar relación" @click="confirmRelationAdd">
                     <AppIcon name="save" size="xs" />
                   </button>
-                  <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" @click="cancelRelationDraft">
+                  <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" aria-label="Cancelar relación" @click="cancelRelationDraft">
                     <AppIcon name="close" size="xs" />
                   </button>
                 </div>
@@ -220,10 +221,10 @@
                       {{ option.nombre }}
                     </option>
                   </select>
-                  <button class="rounded-md bg-primary px-2 text-white" type="button" @click="confirmRelationMove">
+                  <button class="rounded-md bg-primary px-2 text-on-primary" type="button" aria-label="Guardar movimiento de relación" @click="confirmRelationMove">
                     <AppIcon name="save" size="xs" />
                   </button>
-                  <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" @click="cancelRelationDraft">
+                  <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" aria-label="Cancelar movimiento de relación" @click="cancelRelationDraft">
                     <AppIcon name="close" size="xs" />
                   </button>
                 </div>
@@ -240,6 +241,7 @@
                       class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-error/35 text-error-dark hover:bg-error-light/30"
                       type="button"
                       :title="`Quitar ${item.label}`"
+                      :aria-label="`Quitar ${item.label}`"
                     >
                       <AppIcon name="close" size="xs" />
                     </button>
@@ -344,6 +346,7 @@
                               class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-secondary/30 text-info-dark hover:bg-info-light"
                               type="button"
                               :title="`Agregar ${block.title}`"
+                              :aria-label="`Agregar ${block.title}`"
                             >
                               <AppIcon name="add" size="xs" />
                             </button>
@@ -368,8 +371,8 @@
                               {{ option.label }}
                             </option>
                           </select>
-                          <button class="rounded-md bg-primary px-2 text-white" type="button" @click="confirmRelationAdd"><AppIcon name="save" size="xs" /></button>
-                          <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" @click="cancelRelationDraft"><AppIcon name="close" size="xs" /></button>
+                          <button class="rounded-md bg-primary px-2 text-on-primary" type="button" aria-label="Guardar relación" @click="confirmRelationAdd"><AppIcon name="save" size="xs" /></button>
+                          <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" aria-label="Cancelar relación" @click="cancelRelationDraft"><AppIcon name="close" size="xs" /></button>
                         </div>
                         <div v-if="isRelationMoving(row[meta.idKey], block.key)" class="mb-2 flex gap-2">
                           <select v-model="relationDraft.targetUnidadId" class="app-input min-w-0 flex-1 rounded-md border px-2 py-1.5 text-sm">
@@ -378,8 +381,8 @@
                               {{ option.nombre }}
                             </option>
                           </select>
-                          <button class="rounded-md bg-primary px-2 text-white" type="button" @click="confirmRelationMove"><AppIcon name="save" size="xs" /></button>
-                          <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" @click="cancelRelationDraft"><AppIcon name="close" size="xs" /></button>
+                          <button class="rounded-md bg-primary px-2 text-on-primary" type="button" aria-label="Guardar movimiento de relación" @click="confirmRelationMove"><AppIcon name="save" size="xs" /></button>
+                          <button class="rounded-md border border-neutral-300 px-2 text-neutral-600" type="button" aria-label="Cancelar movimiento de relación" @click="cancelRelationDraft"><AppIcon name="close" size="xs" /></button>
                         </div>
                         <div class="space-y-1 max-h-32 overflow-y-auto">
                           <div
@@ -394,6 +397,7 @@
                               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-error/35 text-error-dark hover:bg-error-light/30"
                               type="button"
                               :title="`Quitar ${item.label}`"
+                              :aria-label="`Quitar ${item.label}`"
                             >
                               <AppIcon name="close" size="xs" />
                             </button>

@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[var(--app-bg)] pb-20 md:pb-6">
     <div class="app-card-glass border-b border-neutral-200">
-      <div class="mx-auto flex max-w-[112rem] flex-col gap-3 px-3 py-3 md:px-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="content-wide mx-auto flex flex-col gap-3 px-3 py-3 md:px-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div class="mb-2 flex flex-wrap items-center gap-2">
             <span class="rounded-full border px-3 py-1 text-xs font-bold app-chip-info">
@@ -15,8 +15,8 @@
               Actualizando
             </span>
           </div>
-          <h1 class="text-xl font-extrabold text-neutral-950 md:text-2xl">Dashboard de Producción</h1>
-          <p class="mt-0.5 text-sm text-neutral-500">{{ authStore.userName }} · Lectura operativa y comparativa</p>
+          <h1 class="text-xl font-extrabold text-neutral-950 md:text-2xl">Operación</h1>
+          <p class="mt-0.5 text-sm text-neutral-500">{{ authStore.userName }} · Seguimiento operativo por unidad, proceso, equipo y período</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -28,7 +28,7 @@
             <AppIcon name="download" size="sm" />
             Exportar CSV
           </button>
-          <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-extrabold text-on-primary transition-colors hover:bg-primary-dark" @click="abrirDetalle">
+          <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-extrabold text-on-primary transition-colors hover:bg-primary-dark hover:text-on-primary-dark" @click="abrirDetalle">
             <AppIcon name="records" size="sm" />
             Ver detalle
           </button>
@@ -36,8 +36,8 @@
       </div>
     </div>
 
-    <div class="app-card-glass sticky top-0 z-30 border-b border-neutral-200">
-      <div class="mx-auto max-w-[112rem] px-3 py-2.5 md:px-4">
+    <div class="app-card-glass sticky top-14 z-20 border-b border-neutral-200 md:top-0 md:z-30">
+      <div class="content-wide mx-auto px-3 py-2.5 md:px-4">
         <button
           type="button"
           @click="showFilters = !showFilters"
@@ -46,7 +46,7 @@
           <span class="flex items-center gap-2">
             <AppIcon name="filter" size="sm" />
             Filtros
-            <span v-if="store.filtrosActivos" class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-xs text-white">{{ store.filtrosActivos }}</span>
+            <span v-if="store.filtrosActivos" class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-xs text-on-secondary">{{ store.filtrosActivos }}</span>
           </span>
           <AppIcon name="chevronDown" size="sm" :class="['transition-transform', showFilters ? 'rotate-180' : '']" />
         </button>
@@ -134,12 +134,12 @@
       </div>
     </div>
 
-    <main class="mx-auto max-w-[112rem] space-y-3 px-3 py-3 md:px-4">
+    <main class="content-wide mx-auto space-y-3 px-3 py-3 md:px-4">
       <section v-if="missingUn" class="rounded-lg border border-warning bg-warning-light p-4 text-center">
         <AppIcon name="warning" size="xl" :stroke-width="1.8" class="mx-auto mb-3 text-warning-dark" />
         <p class="mb-1 text-base font-bold text-warning-dark">Sin unidades disponibles</p>
-        <p class="text-sm text-neutral-600">No se encontraron unidades de negocio habilitadas para consultar el dashboard.</p>
-        <button type="button" @click="handleRelogin" class="mt-3 rounded-lg bg-warning-dark px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-warning">
+        <p class="text-sm text-neutral-600">No se encontraron unidades de negocio habilitadas para consultar la operación.</p>
+        <button type="button" @click="handleRelogin" class="mt-3 rounded-lg bg-warning-dark px-4 py-2 text-sm font-semibold text-on-warning-dark transition-colors hover:bg-warning hover:text-on-warning">
           Cerrar sesión
         </button>
       </section>
@@ -159,7 +159,7 @@
               </div>
             </div>
             <div class="app-surface-muted max-w-md rounded-lg border p-3">
-              <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Resumen ejecutivo</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Seguimiento operativo</p>
               <p class="mt-2 text-sm font-semibold leading-6 text-neutral-800">{{ executiveSummary }}</p>
             </div>
           </div>
@@ -230,7 +230,7 @@
           :description="emptyFilterMessage"
           icon="empty"
         >
-          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-extrabold text-on-primary" @click="store.limpiarFiltros()">
+          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-extrabold text-on-primary hover:bg-primary-dark hover:text-on-primary-dark" @click="store.limpiarFiltros()">
             Restablecer filtros
           </button>
         </EmptyState>
@@ -364,7 +364,7 @@
                 <div class="flex min-w-0 items-center gap-2">
                   <span :class="[
                     'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold',
-                    idx === 0 ? 'bg-secondary text-white shadow-sm' : idx === 1 ? 'bg-info-light text-info-dark' : idx === 2 ? 'bg-warning-light text-warning-dark' : 'app-state-inactive border'
+                    idx === 0 ? 'bg-secondary text-on-secondary shadow-sm' : idx === 1 ? 'bg-info-light text-info-dark' : idx === 2 ? 'bg-warning-light text-warning-dark' : 'app-state-inactive border'
                   ]">{{ idx + 1 }}</span>
                   <div class="min-w-0">
                     <p class="truncate text-sm font-bold text-neutral-800">{{ item.patente }}</p>
@@ -401,7 +401,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import AutocompleteField from '@/components/AutocompleteField.vue'
@@ -410,6 +410,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 
 const authStore = useAuthStore()
 const store = useDashboardStore()
+const route = useRoute()
 const router = useRouter()
 
 const showFilters = ref(false)
@@ -570,7 +571,7 @@ function datePresetClass(key) {
   return [
     'rounded-lg border px-3 py-2 text-xs font-bold transition-colors',
     isDatePresetActive(key)
-      ? 'border-secondary bg-secondary text-white'
+      ? 'border-secondary bg-secondary text-on-secondary'
       : 'app-button-soft border',
   ]
 }
@@ -629,7 +630,7 @@ function rankingMetricClass(metric) {
   return [
     'rounded-lg border px-3 py-2 text-xs font-bold transition-colors',
     store.filtros.ranking_metric === metric
-      ? 'border-secondary bg-secondary text-white'
+      ? 'border-secondary bg-secondary text-on-secondary'
       : 'app-button-soft border',
   ]
 }
@@ -638,7 +639,7 @@ function metricTabClass(metric) {
   return [
     'rounded-lg border px-3 py-2 text-xs font-bold transition-colors',
     activeChartMetric.value === metric
-      ? 'border-secondary bg-secondary text-white'
+      ? 'border-secondary bg-secondary text-on-secondary'
       : 'app-button-soft border',
   ]
 }
@@ -692,7 +693,7 @@ function addDays(date, days) {
 
 function exportCsv() {
   const rows = [
-    ['Dashboard de Producción'],
+    ['Operación'],
     ['Unidad', selectedUnitName.value],
     ['Periodo', dateRangeLabel.value],
     [],
@@ -707,7 +708,7 @@ function exportCsv() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `dashboard-produccion-${store.filtros.fecha_desde || 'inicio'}-${store.filtros.fecha_hasta || 'hoy'}.csv`
+  link.download = `operacion-${store.filtros.fecha_desde || 'inicio'}-${store.filtros.fecha_hasta || 'hoy'}.csv`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -784,6 +785,7 @@ onMounted(async () => {
   const savedFilters = store.loadPersistedFiltros()
   const availableUnits = unidadOptions.value.map((unidad) => Number(unidad.idUnidadNegocio))
   const candidates = [
+    route.query.un_id,
     savedFilters.un_id,
     authStore.user?.unidad_negocio,
     ...(Array.isArray(authStore.user?.unidad_ids) ? authStore.user.unidad_ids : []),

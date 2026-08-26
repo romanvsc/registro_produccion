@@ -94,6 +94,7 @@
           @mousedown.prevent="query = ''; isOpen = true"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
           tabindex="-1"
+          aria-label="Limpiar búsqueda"
         >
           <AppIcon name="close" size="sm" />
         </button>

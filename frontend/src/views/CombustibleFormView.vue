@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl px-3 py-3 pb-20 md:px-4 md:pt-4">
+  <div class="content-narrow mx-auto px-3 py-3 pb-20 md:px-4 md:pt-4">
     <PageHeader
       title="Carga de Combustible"
       description="Abastecimientos sin parte de producción, con lectura real del equipo."

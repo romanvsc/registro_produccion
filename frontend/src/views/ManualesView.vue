@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-[calc(100vh-8.5rem)] bg-[var(--app-bg)] px-3 py-3 pb-20 md:min-h-[calc(100vh-3.5rem)] md:px-4 md:py-4">
-    <div class="mx-auto max-w-[112rem] space-y-3">
+    <div class="content-narrow mx-auto space-y-3">
       <PageHeader
         title="Manuales de Usuario"
         description="Guía de uso del sistema por tipo de usuario."
@@ -19,7 +19,7 @@
             :href="activeManual.pdfUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary-dark"
+            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary-dark hover:text-on-primary-dark"
           >
             <AppIcon name="download" size="sm" />
             Abrir PDF
