@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-[var(--app-bg)] pb-20 md:pb-6">
-    <div class="app-card-glass border-b border-neutral-200">
+    <div class="app-card-glass border-b border-[var(--app-border)]">
       <div class="content-wide mx-auto flex flex-col gap-3 px-3 py-3 md:px-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div class="mb-2 flex flex-wrap items-center gap-2">
@@ -15,8 +15,8 @@
               Actualizando
             </span>
           </div>
-          <h1 class="text-xl font-extrabold text-neutral-950 md:text-2xl">Operación</h1>
-          <p class="mt-0.5 text-sm text-neutral-500">{{ authStore.userName }} · Seguimiento operativo por unidad, proceso, equipo y período</p>
+          <h1 class="text-xl font-extrabold text-[var(--app-text)] md:text-2xl">Operación</h1>
+          <p class="mt-0.5 text-sm text-[var(--app-text-muted)]">{{ authStore.userName }} · Seguimiento operativo por unidad, proceso, equipo y período</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -36,12 +36,12 @@
       </div>
     </div>
 
-    <div class="app-card-glass sticky top-14 z-20 border-b border-neutral-200 md:top-0 md:z-30">
+    <div class="app-card-glass app-mobile-filter-bar sticky z-20 border-b border-[var(--app-border)] md:top-0 md:z-30">
       <div class="content-wide mx-auto px-3 py-2.5 md:px-4">
         <button
           type="button"
           @click="showFilters = !showFilters"
-          class="flex w-full items-center justify-between text-sm font-extrabold text-neutral-700 md:hidden"
+          class="flex w-full items-center justify-between text-sm font-extrabold text-[var(--app-text)] md:hidden"
         >
           <span class="flex items-center gap-2">
             <AppIcon name="filter" size="sm" />
@@ -62,7 +62,7 @@
             >
               {{ preset.label }}
             </button>
-            <span class="ml-auto hidden text-xs font-bold uppercase tracking-wide text-neutral-400 md:inline">Filtros principales</span>
+            <span class="ml-auto hidden text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)] md:inline">Filtros principales</span>
           </div>
 
           <div class="app-card grid gap-2.5 rounded-lg p-3 md:grid-cols-[1.25fr_1fr_1fr_.75fr_.75fr_auto] md:items-end">
@@ -86,7 +86,7 @@
             />
 
             <div>
-              <label class="mb-1 block text-xs font-semibold text-neutral-500">Máquina / Equipo</label>
+              <label class="mb-1 block text-xs font-semibold text-[var(--app-text-muted)]">Máquina / Equipo</label>
               <AutocompleteField
                 v-model="movilFilter"
                 :items="movilOptions"
@@ -97,7 +97,7 @@
             </div>
 
             <div>
-              <label class="mb-1 block text-xs font-medium text-neutral-500">Desde</label>
+              <label class="mb-1 block text-xs font-medium text-[var(--app-text-muted)]">Desde</label>
               <input
                 type="date"
                 :value="store.filtros.fecha_desde"
@@ -107,7 +107,7 @@
             </div>
 
             <div>
-              <label class="mb-1 block text-xs font-medium text-neutral-500">Hasta</label>
+              <label class="mb-1 block text-xs font-medium text-[var(--app-text-muted)]">Hasta</label>
               <input
                 type="date"
                 :value="store.filtros.fecha_hasta"
@@ -138,7 +138,7 @@
       <section v-if="missingUn" class="rounded-lg border border-warning bg-warning-light p-4 text-center">
         <AppIcon name="warning" size="xl" :stroke-width="1.8" class="mx-auto mb-3 text-warning-dark" />
         <p class="mb-1 text-base font-bold text-warning-dark">Sin unidades disponibles</p>
-        <p class="text-sm text-neutral-600">No se encontraron unidades de negocio habilitadas para consultar la operación.</p>
+        <p class="text-sm text-[var(--app-text-muted)]">No se encontraron unidades de negocio habilitadas para consultar la operación.</p>
         <button type="button" @click="handleRelogin" class="mt-3 rounded-lg bg-warning-dark px-4 py-2 text-sm font-semibold text-on-warning-dark transition-colors hover:bg-warning hover:text-on-warning">
           Cerrar sesión
         </button>
@@ -154,13 +154,13 @@
               </div>
               <div v-if="store.loading.kpis" class="app-surface-muted h-12 w-56 animate-pulse rounded"></div>
               <div v-else class="flex items-baseline gap-3">
-                <span class="text-4xl font-extrabold tracking-normal text-neutral-950 md:text-5xl">{{ animatedHeroValue }}</span>
-                <span class="text-lg font-bold text-neutral-500">{{ store.kpiPrincipal?.unidad || '' }}</span>
+                <span class="text-4xl font-extrabold tracking-normal text-[var(--app-text)] md:text-5xl">{{ animatedHeroValue }}</span>
+                <span class="text-lg font-bold text-[var(--app-text-muted)]">{{ store.kpiPrincipal?.unidad || '' }}</span>
               </div>
             </div>
             <div class="app-surface-muted max-w-md rounded-lg border p-3">
-              <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Seguimiento operativo</p>
-              <p class="mt-2 text-sm font-semibold leading-6 text-neutral-800">{{ executiveSummary }}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]">Seguimiento operativo</p>
+              <p class="mt-2 text-sm font-semibold leading-6 text-[var(--app-text)]">{{ executiveSummary }}</p>
             </div>
           </div>
           <div v-if="store.kpiPrincipal?.variacion_porcentual != null" class="mt-4">
@@ -172,23 +172,23 @@
         </div>
 
         <div class="app-card rounded-lg p-4">
-          <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Lectura rápida</p>
+          <p class="text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]">Lectura rápida</p>
           <div class="mt-4 space-y-3 text-sm">
             <div class="flex items-center justify-between gap-3">
-              <span class="text-neutral-500">Unidad</span>
-              <span class="truncate font-extrabold text-neutral-900">{{ selectedUnitName || 'Sin seleccionar' }}</span>
+              <span class="text-[var(--app-text-muted)]">Unidad</span>
+              <span class="truncate font-extrabold text-[var(--app-text)]">{{ selectedUnitName || 'Sin seleccionar' }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <span class="text-neutral-500">Periodo</span>
-              <span class="font-extrabold text-neutral-900">{{ dateRangeLabel }}</span>
+              <span class="text-[var(--app-text-muted)]">Periodo</span>
+              <span class="font-extrabold text-[var(--app-text)]">{{ dateRangeLabel }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <span class="text-neutral-500">Registros</span>
-              <span class="font-extrabold text-neutral-900">{{ formatNumber(periodRecords) }}</span>
+              <span class="text-[var(--app-text-muted)]">Registros</span>
+              <span class="font-extrabold text-[var(--app-text)]">{{ formatNumber(periodRecords) }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <span class="text-neutral-500">Filtros activos</span>
-              <span class="font-extrabold text-neutral-900">{{ store.filtrosActivos }}</span>
+              <span class="text-[var(--app-text-muted)]">Filtros activos</span>
+              <span class="font-extrabold text-[var(--app-text)]">{{ store.filtrosActivos }}</span>
             </div>
           </div>
         </div>
@@ -198,7 +198,7 @@
         <div v-for="i in 5" :key="i" class="app-card rounded-lg p-4">
           <div class="app-surface-muted mb-4 h-8 w-8 animate-pulse rounded-lg"></div>
           <div class="app-surface-muted mb-2 h-4 w-3/4 animate-pulse rounded"></div>
-          <div class="h-7 w-1/2 animate-pulse rounded bg-neutral-200"></div>
+          <div class="app-surface-muted h-7 w-1/2 animate-pulse rounded"></div>
         </div>
       </section>
 
@@ -216,10 +216,10 @@
               {{ Number(kpi.variacion_porcentual) >= 0 ? '+' : '-' }}{{ Math.abs(kpi.variacion_porcentual) }}%
             </span>
           </div>
-          <p class="min-h-8 text-xs font-bold uppercase leading-4 text-neutral-400">{{ kpi.nombre }}</p>
+          <p class="min-h-8 text-xs font-bold uppercase leading-4 text-[var(--app-text-soft)]">{{ kpi.nombre }}</p>
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl font-extrabold text-neutral-950">{{ formatNumber(kpi.valor) }}</span>
-            <span class="text-xs font-bold text-neutral-400">{{ kpi.unidad }}</span>
+            <span class="text-2xl font-extrabold text-[var(--app-text)]">{{ formatNumber(kpi.valor) }}</span>
+            <span class="text-xs font-bold text-[var(--app-text-soft)]">{{ kpi.unidad }}</span>
           </div>
         </article>
       </section>
@@ -240,8 +240,8 @@
         <div class="app-card rounded-lg p-4 lg:col-span-3">
           <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Evolución diaria</p>
-              <h2 class="text-lg font-extrabold text-neutral-950">{{ chartTitle }}</h2>
+              <p class="text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]">Evolución diaria</p>
+              <h2 class="text-lg font-extrabold text-[var(--app-text)]">{{ chartTitle }}</h2>
             </div>
             <div class="flex flex-wrap gap-2">
               <button type="button" :class="metricTabClass('produccion')" @click="activeChartMetric = 'produccion'">
@@ -263,7 +263,7 @@
               placeholder="Todos los procesos"
               selectedDisplay="input"
             />
-            <button type="button" class="min-h-10 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-bold text-neutral-600 hover:border-secondary/40" @click="abrirDetalle">
+            <button type="button" class="min-h-10 rounded-lg border border-[var(--app-border)] px-4 py-2 text-sm font-bold text-[var(--app-text-muted)] hover:border-secondary/40" @click="abrirDetalle">
               Abrir registros
             </button>
           </div>
@@ -303,7 +303,7 @@
             </svg>
 
             <div v-if="tooltip"
-              class="absolute pointer-events-none rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white shadow-lg"
+              class="absolute pointer-events-none rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white shadow-[var(--app-shadow-lg)]"
               :style="{ left: `${(tooltip.x / chartW) * 100}%`, top: `${(tooltip.y / (chartH + 30)) * 100 - 10}%`, transform: 'translate(-50%, -100%)' }"
             >
               <div class="font-bold">{{ formatNumber(tooltip.value) }} {{ activeChartUnit }}</div>
@@ -323,10 +323,10 @@
         <div class="app-card rounded-lg p-4 lg:col-span-2">
           <div class="mb-3 flex items-start justify-between gap-3">
             <div>
-              <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Ranking</p>
-              <h2 class="text-lg font-extrabold text-neutral-950">Máquinas</h2>
+              <p class="text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]">Ranking</p>
+              <h2 class="text-lg font-extrabold text-[var(--app-text)]">Máquinas</h2>
             </div>
-            <button type="button" class="rounded-lg border border-neutral-200 px-3 py-2 text-xs font-bold text-neutral-600 hover:border-secondary/40" @click="exportCsv">
+            <button type="button" class="rounded-lg border border-[var(--app-border)] px-3 py-2 text-xs font-bold text-[var(--app-text-muted)] hover:border-secondary/40" @click="exportCsv">
               CSV
             </button>
           </div>
@@ -353,7 +353,7 @@
 
           <div v-if="store.loading.ranking" class="space-y-4">
             <div v-for="i in 5" :key="i" class="animate-pulse">
-              <div class="mb-2 h-3 w-2/3 rounded bg-neutral-200"></div>
+              <div class="app-surface-muted mb-2 h-3 w-2/3 rounded"></div>
               <div class="app-surface-muted h-5 rounded"></div>
             </div>
           </div>
@@ -364,16 +364,16 @@
                 <div class="flex min-w-0 items-center gap-2">
                   <span :class="[
                     'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold',
-                    idx === 0 ? 'bg-secondary text-on-secondary shadow-sm' : idx === 1 ? 'bg-info-light text-info-dark' : idx === 2 ? 'bg-warning-light text-warning-dark' : 'app-state-inactive border'
+                    idx === 0 ? 'bg-secondary text-on-secondary shadow-[var(--app-shadow)]' : idx === 1 ? 'bg-info-light text-info-dark' : idx === 2 ? 'bg-warning-light text-warning-dark' : 'app-state-inactive border'
                   ]">{{ idx + 1 }}</span>
                   <div class="min-w-0">
-                    <p class="truncate text-sm font-bold text-neutral-800">{{ item.patente }}</p>
-                    <p class="truncate text-[11px] text-neutral-400">{{ item.detalle }}</p>
+                    <p class="truncate text-sm font-bold text-[var(--app-text)]">{{ item.patente }}</p>
+                    <p class="truncate text-[11px] text-[var(--app-text-soft)]">{{ item.detalle }}</p>
                   </div>
                 </div>
                 <div class="ml-2 shrink-0 text-right">
-                  <span class="text-sm font-extrabold text-neutral-900">{{ formatNumber(item.valor) }}</span>
-                  <span class="block text-[10px] text-neutral-400">{{ item.registros }} reg.</span>
+                  <span class="text-sm font-extrabold text-[var(--app-text)]">{{ formatNumber(item.valor) }}</span>
+                  <span class="block text-[10px] text-[var(--app-text-soft)]">{{ item.registros }} reg.</span>
                 </div>
               </div>
               <div class="app-surface-muted h-1.5 overflow-hidden rounded-full">

@@ -5,6 +5,8 @@
   --app-content-narrow: 64rem;
   --app-content-default: 80rem;
   --app-content-wide: 112rem;
+  --app-offline-banner-height: 2rem;
+  --app-mobile-header-height: 3.5rem;
 }
 
 @theme {
@@ -89,7 +91,7 @@
   --color-teal-800: #085041;
   --color-teal-900: #04342c;
 
-  /* Tertiary: Amber de acento */
+  /* Tertiary: Coral / Rose de acento */
   --color-tertiary-50: #fff1f2;
   --color-tertiary-100: #ffe4e6;
   --color-tertiary-200: #fecdd3;
@@ -320,9 +322,26 @@
     max-width: var(--app-content-wide);
   }
 
+  .app-offline-banner {
+    height: var(--app-offline-banner-height);
+  }
+
+  .app-mobile-header {
+    top: var(--app-mobile-header-top, 0px);
+  }
+
+  .app-mobile-filter-bar {
+    top: calc(var(--app-mobile-header-top, 0px) + var(--app-mobile-header-height));
+  }
+
   .app-shell {
     background: var(--app-bg);
     color: var(--app-text);
+    --app-mobile-header-top: 0px;
+  }
+
+  .app-shell.app-has-offline-banner {
+    --app-mobile-header-top: var(--app-offline-banner-height);
   }
 
   .app-surface {
@@ -528,7 +547,6 @@
     box-shadow: var(--app-shadow) !important;
   }
 
-  :root[data-theme="dark"] .shadow-lg,
   :root[data-theme="dark"] .shadow-xl,
   :root[data-theme="dark"] .shadow-2xl {
     box-shadow: var(--app-shadow-lg) !important;

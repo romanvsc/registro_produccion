@@ -1,14 +1,17 @@
 <template>
-  <div id="app" class="app-shell min-h-screen">
+  <div
+    id="app"
+    :class="['app-shell min-h-screen', connectivityStore.isOfflineOrBackendDown ? 'app-has-offline-banner' : '']"
+  >
     <OfflineBanner
       :pending-count="produccionStore.pendingCount"
       :has-cached-session="hasCachedSession"
     />
 
     <template v-if="authStore.isAuthenticated">
-      <div :class="['min-h-screen', connectivityStore.isOffline ? 'pt-8' : '']">
-        <header class="sticky top-0 z-30 border-b border-[var(--app-nav-border)] bg-[var(--app-nav-header)] text-[var(--app-nav-text)] md:hidden">
-          <div class="flex h-14 items-center justify-between px-4">
+      <div :class="['min-h-screen', connectivityStore.isOfflineOrBackendDown ? 'pt-[var(--app-offline-banner-height)]' : '']">
+        <header class="app-mobile-header sticky z-30 border-b border-[var(--app-nav-border)] bg-[var(--app-nav-header)] text-[var(--app-nav-text)] md:hidden">
+          <div class="flex h-[var(--app-mobile-header-height)] items-center justify-between px-4">
             <button
               type="button"
               class="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--app-nav-control-border)] text-[var(--app-nav-text)]"
