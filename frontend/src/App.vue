@@ -45,7 +45,7 @@
 
         <aside
           :class="[
-            'fixed inset-y-0 left-0 z-50 flex w-72 max-w-[86vw] flex-col border-r border-[var(--app-nav-border)] bg-[var(--app-nav-bg)] text-[var(--app-nav-text)] shadow-xl transition-[transform,width] duration-200 md:z-20 md:max-w-none md:translate-x-0 md:shadow-none',
+            'app-navigation fixed left-0 z-50 flex w-72 max-w-[86vw] flex-col border-r border-[var(--app-nav-border)] bg-[var(--app-nav-bg)] text-[var(--app-nav-text)] shadow-xl transition-[transform,width] duration-200 md:z-20 md:max-w-none md:translate-x-0 md:shadow-none',
             sidebarCollapsed ? 'md:w-20' : 'md:w-64',
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
           ]"

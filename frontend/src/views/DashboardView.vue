@@ -276,11 +276,11 @@
             <svg :viewBox="`0 0 ${chartW} ${chartH + 30}`" class="w-full" preserveAspectRatio="xMidYMid meet">
               <line v-for="i in 4" :key="'g'+i"
                 :x1="chartPad" :y1="chartH - (chartH - chartPad) * (i/4)" :x2="chartW - chartPad" :y2="chartH - (chartH - chartPad) * (i/4)"
-                stroke="var(--color-neutral-200)" stroke-width="0.5" stroke-dasharray="4 4"
+                stroke="var(--app-border)" stroke-width="0.5" stroke-dasharray="4 4"
               />
               <text v-for="i in 4" :key="'yl'+i"
                 :x="chartPad - 4" :y="chartH - (chartH - chartPad) * (i/4) + 3"
-                text-anchor="end" fill="var(--color-neutral-400)" font-size="9"
+                text-anchor="end" fill="var(--app-text-soft)" font-size="9"
               >{{ formatNumber(maxVal * i / 4) }}</text>
               <defs>
                 <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -293,21 +293,21 @@
               <circle
                 v-for="(p, i) in chartPoints" :key="'p'+i"
                 :cx="p.x" :cy="p.y" r="4"
-                fill="white" :stroke="activeChartMetric === 'combustible' ? 'var(--color-warning-dark)' : 'var(--color-primary)'" stroke-width="2"
+                fill="var(--app-surface)" :stroke="activeChartMetric === 'combustible' ? 'var(--color-warning-dark)' : 'var(--color-primary)'" stroke-width="2"
                 class="cursor-pointer"
                 @mouseenter="tooltip = { x: p.x, y: p.y, label: activeChartData.labels[i], value: activeChartValues[i] }"
               />
               <text v-for="(p, i) in chartXLabels" :key="'xl'+i"
-                :x="p.x" :y="chartH + 20" text-anchor="middle" fill="var(--color-neutral-400)" font-size="8"
+                :x="p.x" :y="chartH + 20" text-anchor="middle" fill="var(--app-text-soft)" font-size="8"
               >{{ p.label }}</text>
             </svg>
 
             <div v-if="tooltip"
-              class="absolute pointer-events-none rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white shadow-[var(--app-shadow-lg)]"
+              class="app-surface absolute pointer-events-none rounded-lg px-3 py-1.5 text-xs shadow-[var(--app-shadow-lg)]"
               :style="{ left: `${(tooltip.x / chartW) * 100}%`, top: `${(tooltip.y / (chartH + 30)) * 100 - 10}%`, transform: 'translate(-50%, -100%)' }"
             >
               <div class="font-bold">{{ formatNumber(tooltip.value) }} {{ activeChartUnit }}</div>
-              <div class="text-[10px] text-neutral-400">{{ tooltip.label }}</div>
+              <div class="text-[10px] text-[var(--app-text-muted)]">{{ tooltip.label }}</div>
             </div>
           </div>
 

@@ -330,6 +330,12 @@
     top: var(--app-mobile-header-top, 0px);
   }
 
+  .app-navigation {
+    top: var(--app-mobile-header-top, 0px);
+    height: calc(100vh - var(--app-mobile-header-top, 0px));
+    height: calc(100dvh - var(--app-mobile-header-top, 0px));
+  }
+
   .app-mobile-filter-bar {
     top: calc(var(--app-mobile-header-top, 0px) + var(--app-mobile-header-height));
   }
