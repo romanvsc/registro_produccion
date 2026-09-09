@@ -262,14 +262,14 @@
         </div>
       </div>
 
-      <div class="app-card-glass fixed bottom-0 left-0 right-0 z-30 px-3 py-3 md:hidden">
+      <ActionBar sticky mobile>
         <div class="mx-auto flex max-w-2xl items-center gap-3">
           <button v-if="pasoActual > 0" type="button" @click="retroceder" class="app-button-soft flex flex-1 items-center justify-center rounded-xl border px-4 py-3.5 font-semibold">Anterior</button>
           <div v-else class="flex-1" />
           <button v-if="pasoActual < totalPasos - 1" type="button" @click="avanzar" :disabled="!puedeAvanzar" class="flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary disabled:opacity-40">Siguiente</button>
           <button v-else type="submit" :disabled="store.submitting" class="flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-bold text-on-primary disabled:opacity-60">{{ store.submitting ? 'Guardando...' : 'Guardar Registro' }}</button>
         </div>
-      </div>
+      </ActionBar>
     </form>
   </div>
 </template>
@@ -283,6 +283,7 @@ import SectionCard from '@/components/SectionCard.vue'
 import InputField from '@/components/InputField.vue'
 import AutocompleteField from '@/components/AutocompleteField.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
+import ActionBar from '@/components/ui/ActionBar.vue'
 import motivosNoOperativos from '@/data/motivosNoOperativos.json'
 
 const props = defineProps({ unidad: { type: Object, required: true } })

@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-3">
     <SectionCard title="Configuración de Acceso">
+      <FeedbackMessage v-if="saveError" tone="error" :message="saveError" class="mb-3" />
       <div class="mb-3 rounded-lg border border-warning/30 bg-warning-light/30 px-3.5 py-2.5 text-sm font-semibold text-warning-dark">
         Desde aquí se puede habilitar o deshabilitar acceso admin a otros usuarios. No podés quitarte tu propio acceso.
       </div>
@@ -15,13 +16,9 @@
           valueKey="idPersonal"
           placeholder="Escribí nombre o DNI"
         />
-        <button
-          @click="loadUsuarios"
-          class="min-h-10 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-dark hover:text-on-primary-dark"
-          type="button"
-        >
+        <AppButton :loading="store.loading" @click="loadUsuarios">
           Refrescar
-        </button>
+        </AppButton>
         <button
           v-if="selectedUserId"
           @click="selectedUserId = ''"
@@ -182,6 +179,8 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import AutocompleteField from '@/components/AutocompleteField.vue'
 import SectionCard from '@/components/SectionCard.vue'
+import FeedbackMessage from '@/components/ui/FeedbackMessage.vue'
+import AppButton from '@/components/ui/AppButton.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 
@@ -193,6 +192,7 @@ const savingUsers = reactive({})
 const page = ref(1)
 const pageSize = ref(5)
 const pageSizeOptions = [5, 10, 25, 50]
+const saveError = ref('')
 
 const userOptions = computed(() => {
   return store.usuariosConfiguracion.map((usuario) => ({
@@ -220,6 +220,7 @@ function isCurrentUser(usuario) {
 }
 
 async function toggleAdmin(usuario, checked) {
+  saveError.value = ''
   const oldValue = usuario.is_admin
   usuario.is_admin = checked ? 1 : 0
   savingUsers[usuario.idPersonal] = true
@@ -229,7 +230,7 @@ async function toggleAdmin(usuario, checked) {
     usuario.is_admin = updated.is_admin
   } catch (error) {
     usuario.is_admin = oldValue
-    alert(error.response?.data?.detail || 'No se pudo actualizar el acceso')
+    saveError.value = error.response?.data?.detail || 'No se pudo actualizar el acceso'
   } finally {
     savingUsers[usuario.idPersonal] = false
   }

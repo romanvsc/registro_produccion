@@ -72,15 +72,9 @@
           </div>
         </div>
 
-        <div v-if="loading" class="flex min-h-64 items-center justify-center text-primary">
-          <AppIcon name="loading" size="xl" class="animate-spin" />
-        </div>
+        <FeedbackMessage v-if="loading" tone="loading" message="Cargando manual..." class="min-h-64 items-center justify-center" />
 
-        <div v-else-if="error" class="p-4">
-          <div class="rounded-lg border border-error-light bg-error-light/30 p-3 text-sm font-semibold text-error-dark">
-            {{ error }}
-          </div>
-        </div>
+        <FeedbackMessage v-else-if="error" tone="error" :message="error" class="m-4" />
 
         <article
           v-else
@@ -98,6 +92,7 @@ import { useAuthStore } from '@/stores/auth'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import FeedbackMessage from '@/components/ui/FeedbackMessage.vue'
 import { renderManualMarkdown } from '@/services/manualRenderer'
 
 const authStore = useAuthStore()

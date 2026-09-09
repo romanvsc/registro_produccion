@@ -13,10 +13,13 @@
         <header class="app-mobile-header sticky z-30 border-b border-[var(--app-nav-border)] bg-[var(--app-nav-header)] text-[var(--app-nav-text)] md:hidden">
           <div class="flex h-[var(--app-mobile-header-height)] items-center justify-between px-4">
             <button
+              ref="mobileMenuButton"
               type="button"
               class="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--app-nav-control-border)] text-[var(--app-nav-text)]"
               aria-label="Abrir navegacion"
-              @click="mobileMenuOpen = true"
+              aria-controls="app-mobile-navigation"
+              :aria-expanded="mobileMenuOpen"
+              @click="openMobileMenu"
             >
               <AppIcon name="menu" />
             </button>
@@ -39,11 +42,14 @@
           <div
             v-if="mobileMenuOpen"
             class="fixed inset-0 z-40 bg-neutral-900/45 md:hidden"
-            @click="mobileMenuOpen = false"
+            @click="closeMobileMenu"
           ></div>
         </Transition>
 
         <aside
+          ref="mobileNavigation"
+          id="app-mobile-navigation"
+          aria-label="Navegacion principal"
           :class="[
             'app-navigation fixed left-0 z-50 flex w-72 max-w-[86vw] flex-col border-r border-[var(--app-nav-border)] bg-[var(--app-nav-bg)] text-[var(--app-nav-text)] shadow-xl transition-[transform,width] duration-200 md:z-20 md:max-w-none md:translate-x-0 md:shadow-none',
             sidebarCollapsed ? 'md:w-20' : 'md:w-64',
@@ -72,7 +78,7 @@
               type="button"
               class="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--app-nav-control-text)] hover:bg-[var(--app-nav-control-border)] md:hidden"
               aria-label="Cerrar menu"
-              @click="mobileMenuOpen = false"
+              @click="closeMobileMenu"
             >
               <AppIcon name="close" size="sm" />
             </button>
@@ -261,7 +267,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProduccionStore } from '@/stores/produccion'
@@ -279,6 +285,10 @@ const produccionStore = useProduccionStore()
 const connectivityStore = useConnectivityStore()
 const { isDark, toggleTheme } = useTheme()
 const mobileMenuOpen = ref(false)
+const mobileMenuButton = ref(null)
+const mobileNavigation = ref(null)
+const previouslyFocusedElement = ref(null)
+let previousBodyOverflow = ''
 const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') === '1')
 const openSections = reactive({
   operacion: false,
@@ -332,6 +342,62 @@ function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
+function getMobileFocusableElements() {
+  const candidates = Array.from(mobileNavigation.value?.querySelectorAll(
+    'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  ) || [])
+
+  return candidates.filter((element) => {
+    let current = element
+    while (current && current !== mobileNavigation.value) {
+      if (current.hidden || window.getComputedStyle(current).display === 'none') return false
+      current = current.parentElement
+    }
+    return true
+  })
+}
+
+async function focusMobileMenu() {
+  await nextTick()
+  getMobileFocusableElements()[0]?.focus()
+}
+
+function openMobileMenu() {
+  if (mobileMenuOpen.value) return
+  previouslyFocusedElement.value = document.activeElement
+  mobileMenuOpen.value = true
+}
+
+function closeMobileMenu({ restoreFocus = true } = {}) {
+  if (!mobileMenuOpen.value) return
+  if (!restoreFocus) previouslyFocusedElement.value = null
+  mobileMenuOpen.value = false
+}
+
+function handleMobileMenuKeydown(event) {
+  if (!mobileMenuOpen.value) return
+
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeMobileMenu()
+    return
+  }
+
+  if (event.key !== 'Tab') return
+  const focusable = getMobileFocusableElements()
+  if (focusable.length === 0) return
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
 function navItemClass(active) {
   return [
     'relative flex min-h-11 items-center gap-2 rounded-lg border py-2 text-sm font-semibold transition-all duration-150 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
@@ -372,9 +438,30 @@ function isItemActive(item) {
 watch(
   () => route.fullPath,
   () => {
-    mobileMenuOpen.value = false
+    closeMobileMenu()
   },
 )
+
+watch(mobileMenuOpen, async (open, wasOpen) => {
+  if (open) {
+    if (!previouslyFocusedElement.value) previouslyFocusedElement.value = document.activeElement
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    await focusMobileMenu()
+    return
+  }
+
+  document.body.style.overflow = previousBodyOverflow
+  previousBodyOverflow = ''
+  if (wasOpen) {
+    await nextTick()
+    const target = previouslyFocusedElement.value?.isConnected
+      ? previouslyFocusedElement.value
+      : mobileMenuButton.value
+    target?.focus?.()
+  }
+  previouslyFocusedElement.value = null
+})
 
 watch(sidebarCollapsed, (value) => {
   localStorage.setItem('sidebarCollapsed', value ? '1' : '0')
@@ -433,6 +520,7 @@ onMounted(() => {
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
   window.addEventListener('appinstalled', handleAppInstalled)
   window.addEventListener('online', handleOnline)
+  document.addEventListener('keydown', handleMobileMenuKeydown)
   if (authStore.isAuthenticated) {
     produccionStore.refreshPendingCount().then(() => attemptPendingSync({ forceHealthCheck: true }))
   }
@@ -446,12 +534,14 @@ onUnmounted(() => {
   window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
   window.removeEventListener('appinstalled', handleAppInstalled)
   window.removeEventListener('online', handleOnline)
+  document.removeEventListener('keydown', handleMobileMenuKeydown)
+  document.body.style.overflow = previousBodyOverflow
   if (syncIntervalId) clearInterval(syncIntervalId)
 })
 
 function handleLogout() {
   authStore.logout()
-  mobileMenuOpen.value = false
+  closeMobileMenu({ restoreFocus: false })
   router.push({ name: 'login' })
 }
 </script>

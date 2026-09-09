@@ -929,7 +929,7 @@
       </div>
 
       <!-- Step navigation — fixed bottom -->
-      <div class="app-card-glass fixed bottom-0 left-0 right-0 z-30 px-3 py-3 md:hidden">
+      <ActionBar sticky mobile :message="mensajePasoIncompleto">
         <div class="mx-auto flex max-w-2xl items-center gap-3">
           <button
             v-if="pasoActual > 0"
@@ -963,10 +963,7 @@
             {{ store.submitting ? 'Guardando...' : 'Guardar Registro' }}
           </button>
         </div>
-        <p v-if="mensajePasoIncompleto" class="mx-auto mt-2 max-w-2xl px-1 text-xs text-error-dark">
-          {{ mensajePasoIncompleto }}
-        </p>
-      </div>
+      </ActionBar>
     </form>
   </div>
 </template>
@@ -981,6 +978,7 @@ import SectionCard from '@/components/SectionCard.vue'
 import InputField from '@/components/InputField.vue'
 import AutocompleteField from '@/components/AutocompleteField.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
+import ActionBar from '@/components/ui/ActionBar.vue'
 import motivosNoOperativos from '@/data/motivosNoOperativos.json'
 import { cleanLocationValues, getLocationRequirements, shouldShowActaPredioFields } from '@/services/actaPredioRules'
 import { focusInside } from '@/utils/focusInside'

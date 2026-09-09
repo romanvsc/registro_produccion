@@ -11,11 +11,10 @@
       </PageHeader>
 
       <section class="app-card rounded-xl p-4">
-        <div v-if="loading" class="py-5 text-center text-sm text-neutral-500">Cargando items...</div>
-        <div v-else-if="error" role="alert" class="flex flex-col gap-2 rounded-lg border border-error/25 bg-error-light/30 p-3 text-sm font-semibold text-error-dark sm:flex-row sm:items-center sm:justify-between">
-          <span>{{ error }}</span>
+        <FeedbackMessage v-if="loading" tone="loading" message="Cargando items..." />
+        <FeedbackMessage v-else-if="error" tone="error" :message="error">
           <AppButton variant="secondary" size="sm" :loading="loading" @click="fetchItems">Reintentar</AppButton>
-        </div>
+        </FeedbackMessage>
         <EmptyState v-else-if="items.length === 0" title="Sin items" description="No hay items disponibles para mostrar." />
         <ul v-else class="divide-y divide-neutral-100">
           <li v-for="item in items" :key="item.id" class="grid gap-1 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
@@ -36,6 +35,7 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import FeedbackMessage from '@/components/ui/FeedbackMessage.vue'
 
 const itemsStore = useItemsStore()
 const { items, loading, error } = storeToRefs(itemsStore)

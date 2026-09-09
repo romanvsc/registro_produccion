@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-[calc(100vh-8.5rem)] bg-[var(--app-bg)] px-3 py-3 pb-20 md:min-h-screen md:px-4 md:py-4">
     <div class="content-wide mx-auto w-full space-y-3">
-      <section class="app-card-glass rounded-xl px-4 py-3 md:px-5">
+      <section v-motion-panel class="app-card-glass rounded-xl px-4 py-3 md:px-5">
         <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div class="min-w-0">
             <div class="mb-2 flex flex-wrap items-center gap-2">
@@ -65,11 +65,11 @@
       </section>
 
       <template v-if="isAdmin">
-        <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section v-motion-panel class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricTile v-for="card in adminSummaryCards" :key="card.label" :card="card" :loading="adminStore.loading || Boolean(adminStore.error)" />
         </section>
 
-        <section class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_30rem]">
+        <section v-motion-panel class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_30rem]">
           <article class="app-card overflow-hidden rounded-xl p-0">
             <div class="flex items-center justify-between gap-3 px-4 pb-2 pt-4 md:px-5">
               <div>
@@ -194,7 +194,7 @@
       </template>
 
       <template v-else>
-        <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <section v-motion-panel class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <button
             v-for="action in operatorMainActions"
             :key="action.name"
@@ -221,7 +221,7 @@
           </div>
         </section>
 
-        <section class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <section v-motion-panel class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div class="space-y-3">
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricTile v-for="card in operatorSummaryCards" :key="card.label" :card="card" :loading="recordsStore.loading" />

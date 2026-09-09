@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -338,6 +337,10 @@
 
   .app-mobile-filter-bar {
     top: calc(var(--app-mobile-header-top, 0px) + var(--app-mobile-header-height));
+  }
+
+  .app-mobile-action-bar {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   }
 
   .app-shell {

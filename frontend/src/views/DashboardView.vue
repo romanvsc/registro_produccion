@@ -17,6 +17,9 @@
           </div>
           <h1 class="text-xl font-extrabold text-[var(--app-text)] md:text-2xl">Operación</h1>
           <p class="mt-0.5 text-sm text-[var(--app-text-muted)]">{{ authStore.userName }} · Seguimiento operativo por unidad, proceso, equipo y período</p>
+          <p class="mt-2 text-xs font-semibold text-[var(--app-text-soft)]" aria-live="polite">
+            {{ scopeSummary }}
+          </p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -153,10 +156,17 @@
                 {{ store.kpiPrincipal?.nombre || 'Métrica principal' }}
               </div>
               <div v-if="store.loading.kpis" class="app-surface-muted h-12 w-56 animate-pulse rounded"></div>
+              <div v-else-if="store.registrosIncluidos === 0" class="flex flex-col gap-1">
+                <span class="text-3xl font-extrabold tracking-normal text-[var(--app-text-muted)]">Sin datos</span>
+                <span class="text-sm font-semibold text-[var(--app-text-soft)]">para los filtros actuales</span>
+              </div>
               <div v-else class="flex items-baseline gap-3">
                 <span class="text-4xl font-extrabold tracking-normal text-[var(--app-text)] md:text-5xl">{{ animatedHeroValue }}</span>
                 <span class="text-lg font-bold text-[var(--app-text-muted)]">{{ store.kpiPrincipal?.unidad || '' }}</span>
               </div>
+              <p v-if="store.kpiPrincipal?.descripcion" class="mt-2 max-w-xl text-xs text-[var(--app-text-soft)]">
+                {{ store.kpiPrincipal.descripcion }}
+              </p>
             </div>
             <div class="app-surface-muted max-w-md rounded-lg border p-3">
               <p class="text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]">Seguimiento operativo</p>
@@ -183,7 +193,7 @@
               <span class="font-extrabold text-[var(--app-text)]">{{ dateRangeLabel }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
-              <span class="text-[var(--app-text-muted)]">Registros</span>
+              <span class="text-[var(--app-text-muted)]">Registros incluidos</span>
               <span class="font-extrabold text-[var(--app-text)]">{{ formatNumber(periodRecords) }}</span>
             </div>
             <div class="flex items-center justify-between gap-3">
@@ -202,7 +212,7 @@
         </div>
       </section>
 
-      <section v-else-if="store.kpisSecundarios.length > 0" :class="secondaryKpiGridClass">
+      <section v-else-if="store.registrosIncluidos > 0 && store.kpisSecundarios.length > 0" :class="secondaryKpiGridClass">
         <article
           v-for="kpi in store.kpisSecundarios"
           :key="kpi.id"
@@ -217,6 +227,9 @@
             </span>
           </div>
           <p class="min-h-8 text-xs font-bold uppercase leading-4 text-[var(--app-text-soft)]">{{ kpi.nombre }}</p>
+          <p v-if="kpi.descripcion" class="mt-1 min-h-8 text-[11px] leading-4 text-[var(--app-text-soft)]">
+            {{ kpi.descripcion }}
+          </p>
           <div class="mt-2 flex items-baseline gap-2">
             <span class="text-2xl font-extrabold text-[var(--app-text)]">{{ formatNumber(kpi.valor) }}</span>
             <span class="text-xs font-bold text-[var(--app-text-soft)]">{{ kpi.unidad }}</span>
@@ -503,7 +516,14 @@ const secondaryKpiGridClass = computed(() => {
 })
 
 const periodRecords = computed(() => {
-  return store.kpis.find((kpi) => String(kpi.nombre || '').toLowerCase().includes('registro'))?.valor || 0
+  return store.registrosIncluidos
+})
+
+const scopeSummary = computed(() => {
+  if (store.loading.kpis) return 'Calculando el alcance de los datos...'
+  if (!store.filtros.un_id) return 'Seleccioná una unidad para consultar la operación.'
+  if (store.registrosIncluidos === 0) return 'Sin registros para los filtros actuales.'
+  return `${formatNumber(store.registrosIncluidos)} registros incluidos en este alcance.`
 })
 
 const executiveSummary = computed(() => {
