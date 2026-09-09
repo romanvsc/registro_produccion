@@ -66,7 +66,7 @@
 
       <template v-if="isAdmin">
         <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricTile v-for="card in adminSummaryCards" :key="card.label" :card="card" :loading="adminStore.loading" />
+          <MetricTile v-for="card in adminSummaryCards" :key="card.label" :card="card" :loading="adminStore.loading || Boolean(adminStore.error)" />
         </section>
 
         <section class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_30rem]">
@@ -102,6 +102,11 @@
               <div v-for="i in 12" :key="i" class="app-surface-muted h-16 animate-pulse rounded-lg"></div>
             </div>
 
+            <div v-else-if="adminStore.error" role="alert" class="flex flex-col gap-3 px-5 py-6 text-center sm:flex-row sm:items-center sm:justify-center">
+              <p class="text-sm font-semibold text-error-dark">{{ adminStore.error }}</p>
+              <AppButton variant="secondary" size="sm" :loading="adminStore.loading" @click="loadAdminSummary">Reintentar</AppButton>
+            </div>
+
             <div v-else-if="pagedAdminUnits.length > 0" class="grid gap-3 px-4 py-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:px-5">
               <button
                 v-for="unidad in pagedAdminUnits"
@@ -135,7 +140,7 @@
                 </div>
               </button>
             </div>
-            <div v-else class="px-5 py-10 text-center">
+            <div v-else class="px-5 py-6 text-center">
               <p class="text-sm font-bold text-[var(--app-text)]">No hay unidades para esa búsqueda.</p>
               <button type="button" class="mt-2 text-xs font-bold text-[var(--color-primary)] underline underline-offset-4" @click="unitSearch = ''">
                 Limpiar búsqueda
@@ -398,7 +403,6 @@ const adminAlerts = computed(() => {
   if (inactiveUnits.value.length > 0) {
     alerts.push(`${inactiveUnits.value.length} unidades sin actividad registrada.`)
   }
-  if (alerts.length === 0) alerts.push('Sin alertas operativas.')
   return alerts
 })
 
@@ -419,9 +423,9 @@ watch(adminUnitTotalPages, (totalPages) => {
 const productionToday = computed(() => {
   const totals = recordsStore.totales
   const options = [
-    { label: 'Metros cubicos', value: totals.total_m3, unit: 'm3' },
+    { label: 'Metros cúbicos', value: totals.total_m3, unit: 'm³' },
     { label: 'Toneladas', value: totals.total_tn, unit: 'TN' },
-    { label: 'Hectareas', value: totals.total_has, unit: 'HAS' },
+    { label: 'Hectáreas', value: totals.total_has, unit: 'HAS' },
     { label: 'Carros', value: totals.total_carros, unit: 'uds' },
     { label: 'Plantas', value: totals.total_plantas, unit: 'uds' },
     { label: 'KM carreteo', value: totals.total_km_carreteo, unit: 'km' },
@@ -476,7 +480,7 @@ const rangeShortLabel = computed(() => {
     case 'yesterday':
       return 'ayer'
     case 'last7':
-      return 'ultimos 7 dias'
+      return 'últimos 7 días'
     case 'lastWeek':
       return 'semana pasada'
     default:
@@ -491,7 +495,7 @@ const rangeLongLabel = computed(() => {
 
 const operatorSummaryCards = computed(() => [
   {
-    label: 'Produccion',
+    label: 'Producción',
     value: fmt(productionToday.value.value),
     unit: productionToday.value.unit,
     detail: `${productionToday.value.label} (${rangeShortLabel.value})`,
@@ -603,7 +607,7 @@ const LastPersonalRecord = defineComponent({
             h('p', { class: 'text-sm text-[var(--app-text-muted)]' }, `${formatFecha(lastRecord.value.fecha)} - ${lastRecord.value.equipo || 'Sin equipo'} - Horómetro final: ${horometroRegistro(lastRecord.value)}`),
             h('div', { class: 'flex flex-wrap gap-2' }, lastRecordMetrics.value.map((metric) => h('span', { key: metric.label, class: 'rounded-md border px-2.5 py-1 text-xs font-bold app-state-inactive' }, `${metric.value} ${metric.unit}`))),
           ])
-          : h('p', { class: 'text-sm text-[var(--app-text-muted)]' }, isTodayRange.value ? 'Todavia no hay registros cargados para hoy.' : 'No hay registros cargados en este periodo.'),
+          : h('p', { class: 'text-sm text-[var(--app-text-muted)]' }, isTodayRange.value ? 'Todavía no hay registros cargados para hoy.' : 'No hay registros cargados en este periodo.'),
     ])
   },
 })
@@ -613,7 +617,7 @@ const SyncCard = defineComponent({
     return () => h('article', { class: 'app-card rounded-xl p-4' }, [
       h('div', { class: 'mb-3 flex items-center justify-between gap-3' }, [
         h('div', [
-          h('p', { class: 'text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]' }, 'Sincronizacion'),
+          h('p', { class: 'text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]' }, 'Sincronización'),
           h('h2', { class: 'mt-1 text-lg font-extrabold text-[var(--app-text)]' }, `${produccionStore.pendingCount} pendiente${produccionStore.pendingCount !== 1 ? 's' : ''}`),
         ]),
         h(AppIcon, { name: isOnline.value ? 'online' : 'offline', size: 'lg', class: isOnline.value ? 'text-success' : 'text-warning-dark' }),
@@ -631,15 +635,17 @@ const AlertPanel = defineComponent({
   },
   emits: ['action'],
   setup(props, { emit }) {
-    return () => h('article', { class: 'rounded-xl border border-error/45 bg-error-light p-4 shadow-sm' }, [
+    return () => h('article', { class: props.alerts.length > 0 ? 'rounded-xl border border-error/45 bg-error-light p-4 shadow-sm' : 'app-card rounded-xl p-4' }, [
       h('div', { class: 'mb-3 flex items-center justify-between gap-3' }, [
         h('div', [
-          h('p', { class: 'text-xs font-bold uppercase tracking-wide text-error-dark/80' }, 'Alertas operativas'),
-          h('h2', { class: 'mt-1 text-2xl font-extrabold leading-none text-error-dark' }, `${props.alerts.length} alerta${props.alerts.length !== 1 ? 's' : ''}`),
+          h('p', { class: props.alerts.length > 0 ? 'text-xs font-bold uppercase tracking-wide text-error-dark/80' : 'text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]' }, 'Alertas operativas'),
+          h('h2', { class: props.alerts.length > 0 ? 'mt-1 text-2xl font-extrabold leading-none text-error-dark' : 'mt-1 text-2xl font-extrabold leading-none text-[var(--app-text)]' }, props.alerts.length > 0 ? `${props.alerts.length} alerta${props.alerts.length !== 1 ? 's' : ''}` : 'Sin alertas'),
         ]),
-        h(AppIcon, { name: 'warning', size: 'lg', class: 'text-error-dark opacity-80' }),
+        h(AppIcon, { name: props.alerts.length > 0 ? 'warning' : 'success', size: 'lg', class: props.alerts.length > 0 ? 'text-error-dark opacity-80' : 'text-success' }),
       ]),
-      h('div', { class: 'space-y-2' }, props.alerts.map((alert) => h('p', { key: alert, class: 'rounded-lg border border-error/25 bg-error-light/30 px-3 py-2 text-sm font-semibold text-error-dark' }, alert))),
+      props.alerts.length > 0
+        ? h('div', { class: 'space-y-2' }, props.alerts.map((alert) => h('p', { key: alert, class: 'rounded-lg border border-error/25 bg-error-light/30 px-3 py-2 text-sm font-semibold text-error-dark' }, alert)))
+        : h('p', { class: 'rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2 text-sm font-semibold text-[var(--app-text-muted)]' }, 'No hay alertas operativas.'),
       props.unitLabels.length > 0
         ? h('div', { class: 'mt-3 rounded-lg p-0' }, [
           h('p', { class: 'mb-2 text-[11px] font-bold uppercase tracking-wide text-error-dark/70' }, 'Unidades afectadas'),
@@ -648,7 +654,9 @@ const AlertPanel = defineComponent({
         : null,
       h('button', {
         type: 'button',
-        class: 'mt-4 inline-flex w-full items-center justify-center rounded-lg bg-error px-3 py-2.5 text-sm font-extrabold text-on-error transition hover:bg-error-dark hover:text-on-error-dark active:scale-[0.98]',
+        class: props.alerts.length > 0
+          ? 'mt-4 inline-flex w-full items-center justify-center rounded-lg bg-error px-3 py-2.5 text-sm font-extrabold text-on-error transition hover:bg-error-dark hover:text-on-error-dark active:scale-[0.98]'
+          : 'app-button-soft mt-4 inline-flex w-full items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-extrabold',
         onClick: () => emit('action'),
       }, props.actionLabel),
     ])
@@ -659,8 +667,8 @@ const RecentRecordsPanel = defineComponent({
   setup() {
     return () => h('article', { class: 'app-card rounded-xl p-4' }, [
       h('div', { class: 'mb-3' }, [
-        h('p', { class: 'text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]' }, 'Ultimos registros'),
-        h('h2', { class: 'mt-0.5 text-xl font-extrabold text-[var(--app-text)]' }, 'Ultimas cargas'),
+        h('p', { class: 'text-xs font-bold uppercase tracking-wide text-[var(--app-text-soft)]' }, 'Últimos registros'),
+        h('h2', { class: 'mt-0.5 text-xl font-extrabold text-[var(--app-text)]' }, 'Últimas cargas'),
       ]),
       adminStore.loadingRecentRecords
         ? h('div', { class: 'space-y-2' }, [1, 2, 3].map((i) => h('div', { key: i, class: 'app-surface-muted h-12 animate-pulse rounded-lg' })))

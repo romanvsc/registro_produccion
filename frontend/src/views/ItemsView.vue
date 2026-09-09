@@ -12,8 +12,9 @@
 
       <section class="app-card rounded-xl p-4">
         <div v-if="loading" class="py-5 text-center text-sm text-neutral-500">Cargando items...</div>
-        <div v-else-if="error" class="rounded-lg border border-error/25 bg-error-light/30 p-3 text-sm font-semibold text-error-dark">
-          Error: {{ error }}
+        <div v-else-if="error" role="alert" class="flex flex-col gap-2 rounded-lg border border-error/25 bg-error-light/30 p-3 text-sm font-semibold text-error-dark sm:flex-row sm:items-center sm:justify-between">
+          <span>{{ error }}</span>
+          <AppButton variant="secondary" size="sm" :loading="loading" @click="fetchItems">Reintentar</AppButton>
         </div>
         <EmptyState v-else-if="items.length === 0" title="Sin items" description="No hay items disponibles para mostrar." />
         <ul v-else class="divide-y divide-neutral-100">

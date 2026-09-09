@@ -265,7 +265,7 @@
         <div class="app-card rounded-lg p-4">
           <div class="mb-3">
             <p class="text-xs font-bold uppercase tracking-wide text-neutral-400">Actividad reciente</p>
-            <h3 class="mt-1 text-lg font-extrabold text-neutral-900">Ultimos registros productivos</h3>
+            <h3 class="mt-1 text-lg font-extrabold text-neutral-900">Últimos registros productivos</h3>
           </div>
 
           <div v-if="overview.recent_records.length > 0" class="space-y-2">
@@ -276,7 +276,7 @@
             >
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <p class="truncate text-sm font-extrabold text-neutral-800">{{ record.operacion || 'Sin operacion' }}</p>
+                  <p class="truncate text-sm font-extrabold text-neutral-800">{{ record.operacion || 'Sin operación' }}</p>
                   <span class="rounded-md border px-2 py-0.5 text-xs font-bold app-state-inactive">
                     {{ formatDate(record.fecha) }}
                   </span>

@@ -412,13 +412,13 @@ const systemFailedLabel = computed(() => {
 })
 
 const systemPendingDescription = computed(() => {
-  if (isAdmin.value) return 'Registros locales de este dispositivo esperando sincronización'
+  if (isAdmin.value) return 'Registros locales: esperando sincronización'
   if (isEncargado.value) return 'Registros de tus unidades asignadas'
   return 'Registros creados por tu usuario'
 })
 
 const systemFailedDescription = computed(() => {
-  if (isAdmin.value) return 'Registros locales de este dispositivo con error de sincronización'
+  if (isAdmin.value) return 'Registros locales: con error de sincronización'
   if (isEncargado.value) return 'Errores dentro de tus unidades'
   return 'Errores de tus cargas locales'
 })
@@ -433,17 +433,17 @@ const syncStatusTitle = computed(() => {
 })
 
 const healthMessage = computed(() => {
-  if (!navigatorOnline.value) return 'Las nuevas cargas quedaran guardadas en este equipo'
+  if (!navigatorOnline.value) return 'Las nuevas cargas quedarán guardadas en este equipo'
   if (!connectivityStore.isBackendUp) return 'El Wi-Fi funciona, pero el servidor no responde'
   if (scopedFailedRecords.value.length > 0) return `${scopedFailedRecords.value.length} registro(s) fallidos`
-  if (scopedPendingRecords.value.length > 0) return `${scopedPendingRecords.value.length} registro(s) esperando envio`
+  if (scopedPendingRecords.value.length > 0) return `${scopedPendingRecords.value.length} registro(s) esperando envío`
   return 'Sin conflictos detectados'
 })
 
 const queueTitle = computed(() => {
   if (loading.value) return 'Revisando cola offline'
   if (scopedRecords.value.length === 0) return 'Todo sincronizado'
-  return `${scopedRecords.value.length} registro(s) requieren atencion`
+  return `${scopedRecords.value.length} registro(s) requieren atención`
 })
 
 const recentActivityTitle = computed(() => {
@@ -461,7 +461,7 @@ const recentActivityDescription = computed(() => {
   }
   if (scopedFailedRecords.value.length === 0) return 'La cola offline no registra errores para el alcance actual.'
   const lastFailed = [...scopedFailedRecords.value].sort((a, b) => Number(b.failedAt || b.timestamp || 0) - Number(a.failedAt || a.timestamp || 0))[0]
-  return `Ultimo error: ${lastFailed?.syncError || 'sin detalle disponible'}.`
+  return `Último error: ${lastFailed?.syncError || 'sin detalle disponible'}.`
 })
 
 const lastCheckLabel = computed(() => {

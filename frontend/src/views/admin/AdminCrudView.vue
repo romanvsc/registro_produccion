@@ -6,7 +6,7 @@
           Administración
         </span>
         <span class="rounded-full border px-3 py-1 text-xs font-bold app-state-inactive">
-          {{ filteredRows.length }} registro{{ filteredRows.length !== 1 ? 's' : '' }}
+          {{ rowCountLabel }}
         </span>
       </template>
       <template #actions>
@@ -60,8 +60,9 @@
           </div>
         </FilterBar>
 
-        <div v-if="error" class="rounded-lg border border-error/25 bg-error-light/30 p-3 text-sm font-semibold text-error-dark">
-          {{ error }}
+        <div v-if="error" role="alert" class="flex flex-col gap-2 rounded-lg border border-error/25 bg-error-light/30 p-3 text-sm font-semibold text-error-dark sm:flex-row sm:items-center sm:justify-between">
+          <span>{{ error }}</span>
+          <AppButton variant="secondary" size="sm" :loading="loading" @click="loadRows">Reintentar</AppButton>
         </div>
 
         <AdminQuickAssignment
@@ -80,7 +81,7 @@
             Cargando...
           </div>
 
-          <div v-else-if="filteredRows.length === 0" class="app-card rounded-xl px-4 py-4 text-center text-sm text-neutral-500">
+          <div v-else-if="!error && filteredRows.length === 0" class="app-card rounded-xl px-4 py-4 text-center text-sm text-neutral-500">
             Sin registros para estos filtros.
           </div>
 
@@ -257,7 +258,7 @@
           </template>
         </div>
 
-        <div class="app-table hidden max-h-[68vh] overflow-auto rounded-xl md:block">
+        <div v-if="!error" class="app-table hidden max-h-[68vh] overflow-auto rounded-xl md:block">
           <table class="min-w-full text-sm">
             <thead class="app-table-head sticky top-0 z-10">
               <tr>
@@ -416,7 +417,7 @@
           </table>
         </div>
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div v-if="!error" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label class="flex items-center gap-2 text-xs font-semibold text-neutral-500">
             Ver
             <select
@@ -909,6 +910,10 @@ let searchTimer = null
 const entity = computed(() => String(route.params.entity || ''))
 const meta = computed(() => ENTITY_DEFINITIONS[entity.value] || null)
 const deleteLabel = computed(() => meta.value?.deleteVerb || 'Eliminar')
+const rowCountLabel = computed(() => {
+  if (error.value) return 'Datos no disponibles'
+  return `${filteredRows.value.length} registro${filteredRows.value.length !== 1 ? 's' : ''}`
+})
 
 const formSections = computed(() => {
   const fields = meta.value?.fields || []

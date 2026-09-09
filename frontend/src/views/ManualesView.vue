@@ -339,6 +339,22 @@ function manualButtonClass(manual) {
   background: var(--color-active-bg);
 }
 
+@media (max-width: 767px) {
+  .manual-content :deep(.cover) {
+    margin-bottom: 1.25rem;
+    padding: 1.25rem;
+  }
+
+  .manual-content :deep(.cover img) {
+    margin-bottom: 0.75rem;
+    max-width: 8rem;
+  }
+
+  .manual-content :deep(.cover h1) {
+    font-size: 1.5rem;
+  }
+}
+
 @media print {
   .manual-content {
     padding: 0 !important;
